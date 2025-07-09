@@ -1,18 +1,33 @@
 {
   "name": "nuxt-app",
-  "private": true,
   "type": "module",
+  "private": true,
+  "packageManager": "pnpm@8.10.2+sha1.e0b68270e89c817ff88b7be62466a2128c53af02",
   "scripts": {
     "build": "nuxt build",
     "dev": "nuxt dev",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
-    "postinstall": "nuxt prepare"
+    "postinstall": "nuxt prepare",
+    "lint": "eslint . --no-warn-ignored",
+    "lint:fix": "eslint . --fix --no-warn-ignored",
+    "prepare": "husky"
   },
   "dependencies": {
+    "@nuxt/eslint": "1.5.2",
+    "eslint": "^9.0.0",
     "nuxt": "^3.17.6",
     "vue": "^3.5.17",
     "vue-router": "^4.5.1"
   },
-  "packageManager": "pnpm@8.10.2+sha1.e0b68270e89c817ff88b7be62466a2128c53af02"
+  "devDependencies": {
+    "@antfu/eslint-config": "^4.16.2",
+    "eslint-plugin-format": "^1.0.1",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.1.2",
+    "typescript": "^5.8.3"
+  },
+  "lint-staged": {
+    "*": "pnpm lint"
+  }
 }

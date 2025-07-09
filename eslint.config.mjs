@@ -1,5 +1,5 @@
 // @ts-check
-import antfu from "@antfu/eslint-config";
+import antfu, { ignores } from "@antfu/eslint-config";
 
 import withNuxt from "./.nuxt/eslint.config.mjs";
 
@@ -34,6 +34,20 @@ export default withNuxt(
         }],
       },
     },
+    ignores([
+      "**/*.md",
+      "**/*.json",
+      "**/*.yaml",
+      "**/*.yml",
+      "**/*.yml",
+      // binary files
+      "**/*.ico",
+      "**/*.png",
+      "**/*.jpg",
+      "**/*.jpeg",
+      "**/*.gif",
+      "**/*.svg",
+    ]),
   ),
   // Your custom configs here
 );

@@ -38,3 +38,31 @@ Locally preview production build:
 ```bash
 pnpm preview
 ```
+
+## 🎨 Icons
+
+This project uses the [Nuxt Icon](https://nuxt.com/modules/icon) module with the [Hugeicons](https://icones.js.org/collection/hugeicons) collection for beautiful, consistent iconography.
+
+### Usage
+
+Use the `<Icon>` component with the `hugeicons:` prefix:
+
+```vue
+<template>
+  <Icon name="hugeicons:apple-music" class="w-6 h-6" />
+  <Icon name="hugeicons:piano" class="w-8 h-8 text-blue-500" />
+  <Icon name="hugeicons:music-note-01" />
+</template>
+```
+
+### Finding Icons
+
+Browse and search for icons at [icones.js.org/collection/hugeicons](https://icones.js.org/collection/hugeicons). Simply copy the icon name and use it with the `hugeicons:` prefix.
+
+### Styling
+
+Icons inherit the current text color by default and can be styled with Tailwind CSS classes:
+
+```vue
+<Icon name="hugeicons:heart" class="w-5 h-5 text-red-500 hover:text-red-600" />
+```

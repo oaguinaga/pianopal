@@ -1,12 +1,15 @@
-// @ts-check
-import antfu, { ignores } from "@antfu/eslint-config";
+import antfu from "@antfu/eslint-config";
 
+// @ts-check
 import withNuxt from "./.nuxt/eslint.config.mjs";
+
+// TODO: add tailwindcss plugin
 
 export default withNuxt(
   antfu(
     {
       type: "app",
+      vue: true,
       typescript: true,
       formatters: true,
       stylistic: {
@@ -14,40 +17,33 @@ export default withNuxt(
         semi: true,
         quotes: "double",
       },
-
+      ignores: [".pnpm-store/**", "**/migrations/*"],
     },
     {
       rules: {
+        "vue/max-attributes-per-line": ["error", {
+          singleline: {
+            max: 2,
+          },
+          multiline: {
+            max: 1,
+          },
+        }],
         "ts/no-redeclare": "off",
+        "perfectionist/sort-imports": ["error", {
+          tsconfigRootDir: ".",
+        }],
         "ts/consistent-type-definitions": ["error", "type"],
         "no-console": ["warn"],
         "antfu/no-top-level-await": ["off"],
         "node/prefer-global/process": ["off"],
         "node/no-process-env": ["error"],
-
-        "perfectionist/sort-imports": ["error", {
-          tsconfigRootDir: ".",
-        }],
         "unicorn/filename-case": ["error", {
           case: "kebabCase",
           ignore: ["README.md"],
         }],
       },
     },
-    ignores([
-      "**/*.md",
-      "**/*.json",
-      "**/*.yaml",
-      "**/*.yml",
-      "**/*.yml",
-      // binary files
-      "**/*.ico",
-      "**/*.png",
-      "**/*.jpg",
-      "**/*.jpeg",
-      "**/*.gif",
-      "**/*.svg",
-    ]),
   ),
-  // Your custom configs here
-);
+)
+;

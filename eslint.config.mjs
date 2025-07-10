@@ -1,7 +1,7 @@
 import antfu from "@antfu/eslint-config";
 
-// @ts-check
 import withNuxt from "./.nuxt/eslint.config.mjs";
+// @ts-check
 
 // TODO: add tailwindcss plugin
 
@@ -30,9 +30,6 @@ export default withNuxt(
           },
         }],
         "ts/no-redeclare": "off",
-        "perfectionist/sort-imports": ["error", {
-          tsconfigRootDir: ".",
-        }],
         "ts/consistent-type-definitions": ["error", "type"],
         "no-console": ["warn"],
         "antfu/no-top-level-await": ["off"],

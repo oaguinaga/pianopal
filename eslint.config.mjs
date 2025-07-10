@@ -17,7 +17,7 @@ export default withNuxt(
         semi: true,
         quotes: "double",
       },
-      ignores: [".pnpm-store/**", "**/migrations/*", "public/**"],
+      ignores: [".pnpm-store/**", "**/migrations/*", "public/logo/**"],
     },
     {
       rules: {
@@ -30,14 +30,14 @@ export default withNuxt(
           },
         }],
         "ts/no-redeclare": "off",
-        "perfectionist/sort-imports": ["error", {
-          tsconfigRootDir: ".",
-        }],
         "ts/consistent-type-definitions": ["error", "type"],
         "no-console": ["warn"],
         "antfu/no-top-level-await": ["off"],
         "node/prefer-global/process": ["off"],
         "node/no-process-env": ["error"],
+        "perfectionist/sort-imports": ["error", {
+          tsconfigRootDir: ".",
+        }],
         "unicorn/filename-case": ["error", {
           case: "kebabCase",
           ignore: ["README.md"],
@@ -45,5 +45,4 @@ export default withNuxt(
       },
     },
   ),
-)
-;
+);

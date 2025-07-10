@@ -1,11 +1,7 @@
 <template>
   <div class="navbar bg-base-300 shadow-sm md:px-24 px-2">
     <NuxtLink to="/" class="flex-1">
-      <NuxtImg
-        src="/logo/logo-white.svg"
-        alt="logo"
-        class="h-8"
-      />
+      <Logo />
     </NuxtLink>
     <div class="flex-none">
       <ul class="menu menu-horizontal px-1">
@@ -20,6 +16,7 @@
           </details>
         </li>
       </ul>
+      <AppThemeToggle />
     </div>
   </div>
 </template>

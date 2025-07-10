@@ -19,6 +19,9 @@
             </ul>
           </details>
         </li>
+        <li>
+          <AppThemeToggle />
+        </li>
       </ul>
     </div>
   </div>

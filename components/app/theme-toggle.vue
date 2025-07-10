@@ -12,22 +12,39 @@ const isDark = computed({
 </script>
 
 <template>
-  <label class="swap swap-rotate color-primary">
-    <!-- this hidden checkbox controls the state -->
+  <!-- <label class="swap swap-rotate color-primary">
     <input v-model="isDark" type="checkbox">
 
-    <!-- sun icon -->
     <Icon
       name="hugeicons:sun-03"
       class="swap-on"
       :size="24"
     />
-    <!-- moon icon -->
     <Icon
       name="hugeicons:moon-01"
       class="swap-off"
       :size="24"
     />
 
+  </label> -->
+
+  <label class="toggle text-base-content">
+    <input
+      v-model="isDark"
+      type="checkbox"
+      class="swap"
+    >
+    <Icon
+      name="hugeicons:moon-01"
+      class="swap-on"
+      :size="16"
+      aria-label="light"
+    />
+    <Icon
+      name="hugeicons:sun-01"
+      class="swap-off"
+      :size="16"
+      aria-label="dark"
+    />
   </label>
 </template>

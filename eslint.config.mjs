@@ -1,7 +1,7 @@
 import antfu from "@antfu/eslint-config";
 
-import withNuxt from "./.nuxt/eslint.config.mjs";
 // @ts-check
+import withNuxt from "./.nuxt/eslint.config.mjs";
 
 // TODO: add tailwindcss plugin
 
@@ -17,7 +17,7 @@ export default withNuxt(
         semi: true,
         quotes: "double",
       },
-      ignores: [".pnpm-store/**", "**/migrations/*", "public/**"],
+      ignores: [".pnpm-store/**", "**/migrations/*", "public/logo/**"],
     },
     {
       rules: {
@@ -35,6 +35,9 @@ export default withNuxt(
         "antfu/no-top-level-await": ["off"],
         "node/prefer-global/process": ["off"],
         "node/no-process-env": ["error"],
+        "perfectionist/sort-imports": ["error", {
+          tsconfigRootDir: ".",
+        }],
         "unicorn/filename-case": ["error", {
           case: "kebabCase",
           ignore: ["README.md"],
@@ -42,5 +45,4 @@ export default withNuxt(
       },
     },
   ),
-)
-;
+);

@@ -12,23 +12,10 @@ const isDark = computed({
 </script>
 
 <template>
-  <!-- <label class="swap swap-rotate color-primary">
-    <input v-model="isDark" type="checkbox">
-
-    <Icon
-      name="hugeicons:sun-03"
-      class="swap-on"
-      :size="24"
-    />
-    <Icon
-      name="hugeicons:moon-01"
-      class="swap-off"
-      :size="24"
-    />
-
-  </label> -->
-
-  <label class="toggle text-base-content">
+  <label
+    class="toggle text-base-content"
+    :class="isDark ? 'text-warning' : 'text-base-content'"
+  >
     <input
       v-model="isDark"
       type="checkbox"

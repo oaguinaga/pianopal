@@ -12,26 +12,28 @@ const isDark = computed({
 </script>
 
 <template>
-  <label
-    class="toggle text-base-content"
-    :class="isDark ? 'text-warning' : 'text-base-content'"
-  >
-    <input
-      v-model="isDark"
-      type="checkbox"
-      class="swap"
+  <ClientOnly>
+    <label
+      class="toggle"
+      :class="isDark ? 'text-warning' : 'text-base-content'"
     >
-    <Icon
-      name="hugeicons:moon-01"
-      class="swap-on"
-      :size="16"
-      aria-label="light"
-    />
-    <Icon
-      name="hugeicons:sun-01"
-      class="swap-off"
-      :size="16"
-      aria-label="dark"
-    />
-  </label>
+      <input
+        v-model="isDark"
+        type="checkbox"
+        class="swap"
+      >
+      <Icon
+        name="hugeicons:moon-01"
+        class="swap-on"
+        :size="16"
+        aria-label="light"
+      />
+      <Icon
+        name="hugeicons:sun-01"
+        class="swap-off"
+        :size="16"
+        aria-label="dark"
+      />
+    </label>
+  </ClientOnly>
 </template>

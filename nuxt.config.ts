@@ -6,7 +6,13 @@ import "./lib/env";
 export default defineNuxtConfig({
   compatibilityDate: "2025-05-15",
   devtools: { enabled: true },
-  modules: ["@nuxt/eslint", "@nuxt/icon", "@nuxt/image", "@nuxtjs/color-mode"],
+  modules: [
+    "@nuxt/eslint",
+    "@nuxt/icon",
+    "@nuxt/image",
+    "@nuxtjs/color-mode",
+    "@pinia/nuxt",
+  ],
   css: ["~/assets/css/main.css"],
   vite: {
     plugins: [

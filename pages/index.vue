@@ -1,9 +1,8 @@
 <script setup lang="ts">
-import { Icon } from "#components";
 </script>
 
 <template>
-  <div class="hero bg-base-300 mx-auto container mt-8">
+  <div class="hero bg-base-300 mx-auto container mt-8 rounded-2xl">
     <div class="hero-content text-center">
       <div class="max-w-md">
         <h1 class="text-5xl font-bold">
@@ -13,10 +12,7 @@ import { Icon } from "#components";
           Provident cupiditate voluptatem et in. Quaerat fugiat ut assumenda excepturi exercitationem
           quasi. In deleniti eaque aut repudiandae et a id nisi.
         </p>
-        <button class="btn btn-primary">
-          <Icon name="hugeicons:apple-music" :size="24" />
-          Get Started
-        </button>
+        <AuthButton />
       </div>
     </div>
   </div>

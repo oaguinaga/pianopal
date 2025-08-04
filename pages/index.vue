@@ -1,4 +1,5 @@
 <script setup lang="ts">
+const authStore = useAuthStore();
 </script>
 
 <template>
@@ -12,7 +13,14 @@
           Provident cupiditate voluptatem et in. Quaerat fugiat ut assumenda excepturi exercitationem
           quasi. In deleniti eaque aut repudiandae et a id nisi.
         </p>
-        <AuthButton />
+        <AuthButton v-if="!authStore.user" />
+        <NuxtLink
+          v-else
+          to="/playground"
+          class="btn btn-primary"
+        >
+          Playground
+        </NuxtLink>
       </div>
     </div>
   </div>

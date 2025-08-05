@@ -12,6 +12,7 @@ export default defineNuxtConfig({
     "@nuxt/image",
     "@nuxtjs/color-mode",
     "@pinia/nuxt",
+    "@nuxtjs/storybook",
   ],
   css: ["~/assets/css/main.css"],
   vite: {

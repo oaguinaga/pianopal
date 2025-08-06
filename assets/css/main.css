@@ -74,3 +74,120 @@
   --depth: 0;
   --noise: 0;
 }
+
+/* Piano Key Custom Utilities */
+@layer utilities {
+  .w-piano-key-white {
+    width: clamp(32px, 4vw, 56px);
+  }
+
+  .h-piano-key {
+    height: 224px;
+  }
+
+  .h-piano-key-mobile {
+    height: 180px;
+  }
+
+  .min-h-piano-key {
+    min-height: 224px;
+  }
+
+  /* Piano key colors - white keys */
+  .bg-key-white {
+    background-color: rgb(255, 255, 255);
+  }
+
+  .bg-key-white-hover {
+    background-color: rgb(249, 250, 251);
+  }
+
+  .bg-key-white-active {
+    background-color: rgb(243, 244, 246);
+  }
+
+  .bg-key-white-dark {
+    background-color: rgb(31, 41, 55);
+  }
+
+  .bg-key-white-hover-dark {
+    background-color: rgb(55, 65, 81);
+  }
+
+  /* Piano key colors - black keys */
+  .bg-key-black {
+    background-color: rgb(55, 65, 81);
+  }
+
+  .bg-key-black-hover {
+    background-color: rgb(75, 85, 99);
+  }
+
+  .bg-key-black-active {
+    background-color: rgb(107, 114, 128);
+  }
+
+  .bg-key-black-dark {
+    background-color: rgb(31, 41, 55);
+  }
+
+  /* Border colors */
+  .border-key-border {
+    border-color: rgb(229, 231, 235);
+  }
+
+  .border-key-border-dark {
+    border-color: rgb(55, 65, 81);
+  }
+
+  .border-key-black-border {
+    border-color: rgb(17, 24, 39);
+  }
+
+  .border-key-black-border-dark {
+    border-color: rgb(17, 24, 39);
+  }
+
+  /* Box shadows */
+  .shadow-key-white {
+    box-shadow:
+      0 2px 4px rgba(0, 0, 0, 0.05),
+      inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  }
+
+  .shadow-key-white-hover {
+    box-shadow:
+      0 3px 6px rgba(0, 0, 0, 0.08),
+      inset 0 1px 0 rgba(255, 255, 255, 0.95);
+  }
+
+  .shadow-key-white-active {
+    box-shadow:
+      0 1px 2px rgba(0, 0, 0, 0.1),
+      inset 0 2px 4px rgba(0, 0, 0, 0.05);
+  }
+
+  .shadow-key-black {
+    box-shadow:
+      0 3px 6px rgba(0, 0, 0, 0.2),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  }
+
+  .shadow-key-black-hover {
+    box-shadow:
+      0 4px 8px rgba(0, 0, 0, 0.25),
+      inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  }
+
+  .shadow-key-black-active {
+    box-shadow:
+      0 2px 4px rgba(0, 0, 0, 0.2),
+      inset 0 2px 4px rgba(0, 0, 0, 0.15);
+  }
+
+  .shadow-key-black-dark {
+    box-shadow:
+      0 3px 6px rgba(0, 0, 0, 0.3),
+      inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  }
+}

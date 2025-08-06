@@ -13,7 +13,7 @@
     "lint": "eslint . ",
     "lint:fix": "eslint . --fix ",
     "prepare": "husky",
-    "storybook": "storybook dev -p 6006",
+    "storybook": "storybook dev -p 6007",
     "build-storybook": "storybook build",
     "test:visual": "playwright test",
     "test:visual:ui": "playwright test --ui",

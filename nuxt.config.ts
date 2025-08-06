@@ -1,7 +1,12 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 import tailwindcss from "@tailwindcss/vite";
 
-import "./lib/env";
+// Skip env validation for Storybook
+// eslint-disable-next-line node/no-process-env
+if (!process.env.STORYBOOK) {
+  // eslint-disable-next-line ts/no-require-imports
+  require("./lib/env");
+}
 
 export default defineNuxtConfig({
   compatibilityDate: "2025-05-15",

@@ -275,3 +275,216 @@ export const ComplexScenario: Story = {
     },
   },
 };
+
+// Test enharmonic equivalents (flats vs sharps)
+export const EnharmonicEquivalents: Story = {
+  args: {
+    octaves: 1,
+    labelStyle: "letter",
+    colorMode: "per-note",
+    highlightedNotes: ["Db1", "Eb1", "Gb1", "Ab1", "Bb1"], // All flats
+  },
+  parameters: {
+    docs: {
+      description: {
+        story: "Tests flat notation and colors for enharmonic equivalents (Db, Eb, Gb, Ab, Bb).",
+      },
+    },
+  },
+};
+
+export const EnharmonicEquivalentsActive: Story = {
+  args: {
+    octaves: 1,
+    labelStyle: "letter",
+    colorMode: "per-note",
+    activeNotes: ["C#1", "D#1", "F#1", "G#1", "A#1"], // All sharps
+  },
+  parameters: {
+    docs: {
+      description: {
+        story: "Tests sharp notation and colors for enharmonic equivalents (C#, D#, F#, G#, A#).",
+      },
+    },
+  },
+};
+
+// Test persistent key press states
+export const PersistentActiveStates: Story = {
+  args: {
+    octaves: 1,
+    labelStyle: "letter",
+    colorMode: "per-note",
+    activeNotes: ["C1", "E1", "G1"], // Should remain active
+    highlightedNotes: ["D1", "F1", "A1"],
+  },
+  parameters: {
+    docs: {
+      description: {
+        story: "Tests that active keys maintain their pressed state color persistently.",
+      },
+    },
+  },
+};
+
+// Test mono mode with different key types
+export const MonoModeWhiteKeys: Story = {
+  args: {
+    octaves: 1,
+    labelStyle: "letter",
+    colorMode: "mono",
+    highlightedNotes: ["C1", "E1", "G1"],
+  },
+  parameters: {
+    docs: {
+      description: {
+        story: "Tests mono color mode with white keys using indigo-200.",
+      },
+    },
+  },
+};
+
+export const MonoModeBlackKeys: Story = {
+  args: {
+    octaves: 1,
+    labelStyle: "letter",
+    colorMode: "mono",
+    highlightedNotes: ["C#1", "F#1", "A#1"],
+  },
+  parameters: {
+    docs: {
+      description: {
+        story: "Tests mono color mode with black keys using indigo-400.",
+      },
+    },
+  },
+};
+
+export const MonoModeMixed: Story = {
+  args: {
+    octaves: 1,
+    labelStyle: "letter",
+    colorMode: "mono",
+    highlightedNotes: ["C1", "C#1", "D1", "D#1"],
+    activeNotes: ["E1", "F#1"],
+  },
+  parameters: {
+    docs: {
+      description: {
+        story: "Tests mono color mode with mixed white/black keys and highlight/active states.",
+      },
+    },
+  },
+};
+
+// Test label contrast on colored keys
+export const LabelContrastTest: Story = {
+  args: {
+    octaves: 1,
+    labelStyle: "letter",
+    colorMode: "per-note",
+    highlightedNotes: ["C1", "D1", "E1", "F1", "G1", "A1", "B1"],
+    activeNotes: ["C#1", "D#1", "F#1", "G#1", "A#1"],
+  },
+  parameters: {
+    docs: {
+      description: {
+        story: "Tests label contrast with dark text (text-gray-950) on highlighted/active keys.",
+      },
+    },
+  },
+};
+
+// Test do-re-mi labels with flats
+export const DoReMiWithFlats: Story = {
+  args: {
+    octaves: 1,
+    labelStyle: "do-re-mi",
+    showOctaveLabels: true,
+    colorMode: "per-note",
+    highlightedNotes: ["Db1", "Eb1", "Gb1", "Ab1", "Bb1"],
+  },
+  parameters: {
+    docs: {
+      description: {
+        story: "Tests do-re-mi labels with flat notation (Re♭, Mi♭, Sol♭, La♭, Ti♭).",
+      },
+    },
+  },
+};
+
+// Test disabled state without transparency
+export const DisabledState: Story = {
+  args: {
+    octaves: 1,
+    labelStyle: "letter",
+    colorMode: "per-note",
+    highlightedNotes: ["C1", "E1", "G1"],
+    disabled: true,
+  },
+  parameters: {
+    docs: {
+      description: {
+        story: "Tests disabled state without opacity/transparency effects.",
+      },
+    },
+  },
+};
+
+// Color System Verification Stories
+export const ColorVerificationC: Story = {
+  name: "Color Verification - C Note",
+  args: {
+    octaves: 1,
+    labelStyle: "letter",
+    showOctaveLabels: true,
+    colorMode: "per-note",
+    highlightedNotes: ["C1"],
+    activeNotes: [],
+  },
+  parameters: {
+    docs: {
+      description: {
+        story: "Verifies that C notes display the correct blue color highlighting.",
+      },
+    },
+  },
+};
+
+export const ColorVerificationFlat: Story = {
+  name: "Color Verification - Flat Notation",
+  args: {
+    octaves: 1,
+    labelStyle: "letter",
+    showOctaveLabels: true,
+    colorMode: "per-note",
+    highlightedNotes: ["Db1", "Eb1"],
+    activeNotes: [],
+  },
+  parameters: {
+    docs: {
+      description: {
+        story: "Verifies that flat notation (Db, Eb) displays correct colors and labels.",
+      },
+    },
+  },
+};
+
+export const ColorVerificationMono: Story = {
+  name: "Color Verification - Mono Mode",
+  args: {
+    octaves: 1,
+    labelStyle: "letter",
+    showOctaveLabels: true,
+    colorMode: "mono",
+    highlightedNotes: ["C1", "C#1", "D1"],
+    activeNotes: [],
+  },
+  parameters: {
+    docs: {
+      description: {
+        story: "Verifies that mono color mode uses consistent indigo colors for all highlighted notes.",
+      },
+    },
+  },
+};

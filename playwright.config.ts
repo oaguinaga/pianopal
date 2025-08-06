@@ -12,7 +12,7 @@ export default defineConfig({
   workers: isCI ? 1 : undefined,
   reporter: [["html", { outputFolder: "./tests/reports" }]],
   use: {
-    baseURL: "http://localhost:6008",
+    baseURL: "http://localhost:6007",
     trace: "on-first-retry",
     screenshot: "only-on-failure",
   },
@@ -26,7 +26,7 @@ export default defineConfig({
 
   webServer: {
     command: "pnpm run storybook",
-    url: "http://localhost:6008",
+    url: "http://localhost:6007",
     reuseExistingServer: !isCI,
     timeout: 120 * 1000,
   },

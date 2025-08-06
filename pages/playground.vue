@@ -2,8 +2,8 @@
 // const { user } = useAuthStore();
 
 // Test data for piano component
-const highlightedNotes = ref(["C1", "E1", "G1"]); // C Major chord
-const activeNotes = ref<string[]>([]);
+const highlightedNotes = ref(["C1", "E1", "G1", "C#1", "D#1"]); // C Major chord + some sharps
+const activeNotes = ref<string[]>(["F1", "A1"]); // Some active notes for testing
 
 // Test configuration options
 const testOctaves = ref(2);
@@ -15,12 +15,12 @@ function handleNoteOn(noteId: string) {
   if (!activeNotes.value.includes(noteId)) {
     activeNotes.value.push(noteId);
   }
-  console.log("Note on:", noteId);
+  console.warn("Note on:", noteId);
 }
 
 function handleNoteOff(noteId: string) {
   activeNotes.value = activeNotes.value.filter(n => n !== noteId);
-  console.log("Note off:", noteId);
+  console.warn("Note off:", noteId);
 }
 </script>
 
@@ -126,6 +126,12 @@ function handleNoteOff(noteId: string) {
             <h3 class="text-lg font-semibold mb-2">
               Interactive Piano ({{ testOctaves }} octave{{ testOctaves !== 1 ? 's' : '' }})
             </h3>
+            <div class="mb-2 text-sm">
+              <strong>Debug Info:</strong><br>
+              Highlighted: {{ JSON.stringify(highlightedNotes) }}<br>
+              Active: {{ JSON.stringify(activeNotes) }}<br>
+              Color Mode: {{ testColorMode }}
+            </div>
             <visual-piano
               :octaves="testOctaves"
               :label-style="testLabelStyle"
@@ -156,13 +162,61 @@ function handleNoteOff(noteId: string) {
               <!-- Example 1: C# and F# highlighted (like screenshot) -->
               <div class="mb-4">
                 <h5 class="text-sm font-medium mb-2">
-                  Example 1: C# and F# Highlighted
+                  Example 1: C# and F# Highlighted (Sharp notation)
                 </h5>
                 <visual-piano
                   :octaves="1"
                   color-mode="per-note"
                   :highlighted-notes="['C#1', 'F#1']"
                   :active-notes="activeNotes"
+                  @note-on="handleNoteOn"
+                  @note-off="handleNoteOff"
+                />
+              </div>
+
+              <!-- Simple debug test with basic notes -->
+              <div class="mb-4">
+                <h5 class="text-sm font-medium mb-2">
+                  DEBUG: Simple White Key Test (C1 highlighted, should be BLUE)
+                </h5>
+                <visual-piano
+                  :octaves="1"
+                  color-mode="per-note"
+                  label-style="letter"
+                  :highlighted-notes="['C1']"
+                  :active-notes="[]"
+                  @note-on="handleNoteOn"
+                  @note-off="handleNoteOff"
+                />
+              </div>
+
+              <!-- Simple debug test with black keys -->
+              <div class="mb-4">
+                <h5 class="text-sm font-medium mb-2">
+                  DEBUG: Simple Black Key Test (C#1 highlighted, should be BLUE)
+                </h5>
+                <visual-piano
+                  :octaves="1"
+                  color-mode="per-note"
+                  label-style="letter"
+                  :highlighted-notes="['C#1']"
+                  :active-notes="[]"
+                  @note-on="handleNoteOn"
+                  @note-off="handleNoteOff"
+                />
+              </div>
+
+              <!-- Example 1b: Flat notation test -->
+              <div class="mb-4">
+                <h5 class="text-sm font-medium mb-2">
+                  DEBUG: Flat notation test (Db1 highlighted, should highlight C# key with PURPLE color)
+                </h5>
+                <visual-piano
+                  :octaves="1"
+                  color-mode="per-note"
+                  label-style="letter"
+                  :highlighted-notes="['Db1']"
+                  :active-notes="[]"
                   @note-on="handleNoteOn"
                   @note-off="handleNoteOff"
                 />

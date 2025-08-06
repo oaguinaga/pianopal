@@ -2,7 +2,6 @@ import type { StorybookConfig } from "@nuxtjs/storybook";
 
 const config: StorybookConfig = {
   stories: [
-    "./**/*.mdx",
     "../stories/**/*.stories.@(js|jsx|ts|tsx|mdx)",
   ],
   addons: [
@@ -14,6 +13,18 @@ const config: StorybookConfig = {
   framework: {
     name: "@storybook-vue/nuxt",
     options: {},
+  },
+  viteFinal: async (config) => {
+    // Prevent Nuxt from trying to fetch app manifest in Storybook
+    if (config.define) {
+      config.define["process.env.STORYBOOK"] = JSON.stringify(true);
+    }
+    else {
+      config.define = {
+        "process.env.STORYBOOK": JSON.stringify(true),
+      };
+    }
+    return config;
   },
 };
 export default config;

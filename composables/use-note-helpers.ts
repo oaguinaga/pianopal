@@ -1,10 +1,5 @@
 import type { Ref } from "vue";
 
-export type WhiteNote = "C" | "D" | "E" | "F" | "G" | "A" | "B";
-export type BlackNote = "C#" | "D#" | "F#" | "G#" | "A#";
-export type FlatNote = "Db" | "Eb" | "Gb" | "Ab" | "Bb";
-export type Note = WhiteNote | BlackNote | FlatNote;
-
 // Enharmonic equivalents mapping (flat to sharp)
 const enharmonicMap: Record<string, string> = {
   Db: "C#",

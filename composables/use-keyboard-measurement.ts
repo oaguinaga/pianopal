@@ -2,46 +2,32 @@ import type { Ref } from "vue";
 
 import { ref } from "vue";
 
-// Black key positioning mapping within each octave
-const blackKeyMapping = {
-  "C#": [0, 1], // Between C and D within the octave
-  "D#": [1, 2], // Between D and E within the octave
-  "F#": [3, 4], // Between F and G within the octave
-  "G#": [4, 5], // Between G and A within the octave
-  "A#": [5, 6], // Between A and B within the octave
-} as const;
+import type { BlackKeyPosition } from "~/types/piano";
 
-type BlackKeyPosition = {
-  left: string;
-  width: string;
-  transform: string;
-};
+import {
+  BLACK_KEY_MAPPING,
+  BLACK_KEY_POSITION_MAP,
+  BLACK_KEY_WIDTH_RATIO,
+  DEFAULT_WHITE_KEY_WIDTH,
+  KEY_GAP,
+} from "~/constants/piano";
 
 export function useKeyboardMeasurement(containerRef: Ref<HTMLElement | undefined>) {
   // Actual white key width (measured from DOM)
-  const actualWhiteKeyWidth = ref(48); // Default fallback
+  const actualWhiteKeyWidth = ref(DEFAULT_WHITE_KEY_WIDTH);
 
   // Store measured black key positions for DOM-based calculations
   const blackKeyPositions = ref<Record<string, BlackKeyPosition>>({});
 
   // Helper function for fallback positioning calculation
   function calculateFallbackPosition(note: string, actualWidth: number): BlackKeyPosition {
-    const positionMap: Record<string, number> = {
-      "C#": 0.5,
-      "D#": 1.5,
-      "F#": 3.5,
-      "G#": 4.5,
-      "A#": 5.5,
-    } as const;
-
-    const position = positionMap[note];
+    const position = BLACK_KEY_POSITION_MAP[note as keyof typeof BLACK_KEY_POSITION_MAP];
     if (position === undefined) {
       return { left: "0px", width: "0px", transform: "translateX(-50%)" };
     }
 
-    const gap = 1;
-    const blackKeyWidth = actualWidth * 0.6;
-    const centerPoint = position * (actualWidth + gap);
+    const blackKeyWidth = actualWidth * BLACK_KEY_WIDTH_RATIO;
+    const centerPoint = position * (actualWidth + KEY_GAP);
 
     return {
       left: `${centerPoint}px`,
@@ -72,7 +58,7 @@ export function useKeyboardMeasurement(containerRef: Ref<HTMLElement | undefined
     if (octaveContainers.length === 0)
       return;
 
-    const blackKeyWidth = actualWhiteKeyWidth.value * 0.6;
+    const blackKeyWidth = actualWhiteKeyWidth.value * BLACK_KEY_WIDTH_RATIO;
     const newPositions: Record<string, BlackKeyPosition> = {};
 
     // Calculate positions relative to the first octave container
@@ -81,7 +67,7 @@ export function useKeyboardMeasurement(containerRef: Ref<HTMLElement | undefined
     const whiteKeysInOctave = firstOctave.querySelectorAll(".white-key");
 
     if (whiteKeysInOctave.length >= 7) {
-      Object.entries(blackKeyMapping).forEach(([note, [leftIndex, rightIndex]]) => {
+      Object.entries(BLACK_KEY_MAPPING).forEach(([note, [leftIndex, rightIndex]]) => {
         if (whiteKeysInOctave[leftIndex] && whiteKeysInOctave[rightIndex]) {
           const leftKey = whiteKeysInOctave[leftIndex].getBoundingClientRect();
           const rightKey = whiteKeysInOctave[rightIndex].getBoundingClientRect();

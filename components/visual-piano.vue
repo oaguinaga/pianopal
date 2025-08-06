@@ -24,30 +24,13 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 
-import type { BlackNote, WhiteNote } from "~/composables/use-note-helpers";
+import type { VisualPianoEmits, VisualPianoProps } from "~/types/piano";
 
 import { useColorClasses } from "~/composables/use-color-classes";
 import { useKeyboardMeasurement } from "~/composables/use-keyboard-measurement";
 import { useNoteHelpers } from "~/composables/use-note-helpers";
 import { useResizeObserver } from "~/composables/use-resize-observer";
-
-// Strict TypeScript prop definitions
-type VisualPianoProps = {
-  octaves?: number;
-  theme?: "light" | "dark";
-  labelStyle?: "letter" | "do-re-mi" | "none";
-  highlightedNotes?: string[];
-  activeNotes?: string[];
-  disabled?: boolean;
-  colorMode?: "per-note" | "mono";
-  inputEnabled?: boolean;
-  showOctaveLabels?: boolean;
-};
-
-type VisualPianoEmits = {
-  noteOn: [note: string];
-  noteOff: [note: string];
-};
+import { BLACK_KEYS, MAX_OCTAVES, MIN_OCTAVES, WHITE_KEYS } from "~/constants/piano";
 
 // Props with validation and defaults
 const props = withDefaults(defineProps<VisualPianoProps>(), {
@@ -64,6 +47,7 @@ const props = withDefaults(defineProps<VisualPianoProps>(), {
 
 // Emits
 const emit = defineEmits<VisualPianoEmits>();
+const component_key = useId();
 
 // Reactive state
 const internalActiveNotes = ref<string[]>([]);
@@ -71,16 +55,12 @@ const containerRef = ref<HTMLElement>();
 
 // Validate octave range (1-7 octaves supported)
 const validatedOctaves = computed(() => {
-  const octaves = Math.max(1, Math.min(7, props.octaves));
+  const octaves = Math.max(MIN_OCTAVES, Math.min(MAX_OCTAVES, props.octaves));
   if (octaves !== props.octaves && import.meta.client) {
-    console.warn(`VisualPiano: octaves prop must be between 1-7. Received ${props.octaves}, using ${octaves}.`);
+    console.warn(`VisualPiano: octaves prop must be between ${MIN_OCTAVES}-${MAX_OCTAVES}. Received ${props.octaves}, using ${octaves}.`);
   }
   return octaves;
 });
-
-// Piano note configuration with strict typing
-const whiteKeys: readonly WhiteNote[] = ["C", "D", "E", "F", "G", "A", "B"] as const;
-const blackKeys: readonly BlackNote[] = ["C#", "D#", "F#", "G#", "A#"] as const;
 
 // Generate octave numbers based on validated octaves
 const octaveNumbers = computed(() => {
@@ -94,7 +74,6 @@ const activeNotesRef = computed(() => props.activeNotes);
 // Initialize composables
 const {
   getNoteId,
-  getEnharmonicEquivalents,
   isHighlighted,
   isActive,
   getNoteLabel,
@@ -109,9 +88,6 @@ const {
   internalActiveNotes,
   computed(() => props.colorMode),
   octaveNumbers,
-  whiteKeys,
-  blackKeys,
-  { getNoteId, isActive, isHighlighted, getEnharmonicEquivalents },
 );
 
 const {
@@ -161,6 +137,7 @@ function getAriaLabel(note: string, octave: number): string {
 
 <template>
   <div
+    :key="component_key"
     class="visual-piano w-full bg-transparent touch-manipulation scroll-smooth"
     :data-theme="theme"
     :class="{
@@ -180,7 +157,7 @@ function getAriaLabel(note: string, octave: number): string {
       >
         <!-- White keys -->
         <button
-          v-for="note in whiteKeys"
+          v-for="note in WHITE_KEYS"
           :key="`${note}-${octave}`"
           type="button"
           class="white-key piano-key relative select-none flex items-end justify-center pb-4 transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-opacity-50 focus-visible:z-20"
@@ -217,7 +194,7 @@ function getAriaLabel(note: string, octave: number): string {
 
         <!-- Black keys with responsive positioning -->
         <button
-          v-for="note in blackKeys"
+          v-for="note in BLACK_KEYS"
           :key="`${note}-${octave}`"
           type="button"
           class="black-key piano-key absolute z-10 select-none flex items-end justify-center pb-2 transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-opacity-50 focus-visible:z-20"
@@ -276,11 +253,11 @@ function getAriaLabel(note: string, octave: number): string {
 .white-key {
   width: clamp(32px, 4vw, 56px);
   height: 224px;
-  border: 1px solid rgb(229, 231, 235);
+  border: 1px solid rgb(229, 231, 235, 0.3);
   border-radius: 0 0 0.5rem 0.5rem;
   box-shadow:
     0 2px 4px rgba(0, 0, 0, 0.05),
-    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    inset 0 1px 0 rgba(255, 255, 255, 0.01);
 }
 
 /* Default white key background when no color classes are applied */
@@ -306,7 +283,7 @@ function getAriaLabel(note: string, octave: number): string {
 .black-key {
   width: clamp(19px, 2.4vw, 34px);
   height: 134px;
-  border: 1px solid rgb(17, 24, 39);
+  border: 1px solid rgb(17, 24, 39, 0.3);
   border-radius: 0 0 0.375rem 0.375rem;
   box-shadow:
     0 3px 6px rgba(0, 0, 0, 0.2),

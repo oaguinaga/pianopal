@@ -2,95 +2,11 @@ import type { ComputedRef, Ref } from "vue";
 
 import { computed } from "vue";
 
-import type { BlackNote, WhiteNote } from "./use-note-helpers";
+import type { BlackNote, WhiteNote } from "~/types/piano";
 
-// Color mapping for PRD specifications using semantic tokens
-const noteColorMap = {
-  C: {
-    highlight: "bg-blue-200",
-    active: "bg-blue-400",
-  },
-  D: {
-    highlight: "bg-purple-200",
-    active: "bg-purple-400",
-  },
-  E: {
-    highlight: "bg-pink-200",
-    active: "bg-pink-400",
-  },
-  F: {
-    highlight: "bg-emerald-200",
-    active: "bg-emerald-400",
-  },
-  G: {
-    highlight: "bg-red-400",
-    active: "bg-red-400",
-  },
-  A: {
-    highlight: "bg-orange-200",
-    active: "bg-orange-400",
-  },
-  B: {
-    highlight: "bg-yellow-200",
-    active: "bg-yellow-400",
-  },
-} as const;
+import { BLACK_KEY_COLOR_MAP, BLACK_KEYS, NOTE_COLOR_MAP, WHITE_KEYS } from "~/constants/piano";
 
-// Black key color mapping (darker variants) - includes enharmonic equivalents
-const blackKeyColorMap = {
-  // C# / Db
-  "C#": {
-    highlight: "bg-blue-900",
-    active: "bg-blue-500",
-  },
-  "Db": {
-    highlight: "bg-purple-900",
-    active: "bg-purple-500",
-  },
-  // D# / Eb
-  "D#": {
-    highlight: "bg-purple-900",
-    active: "bg-purple-500",
-  },
-  "Eb": {
-    highlight: "bg-pink-900",
-    active: "bg-pink-500",
-  },
-  // F# / Gb
-  "F#": {
-    highlight: "bg-emerald-900",
-    active: "bg-emerald-500",
-  },
-  "Gb": {
-    highlight: "bg-red-900",
-    active: "bg-red-600",
-  },
-  // G# / Ab
-  "G#": {
-    highlight: "bg-red-900",
-    active: "bg-red-600",
-  },
-  "Ab": {
-    highlight: "bg-orange-900",
-    active: "bg-orange-500",
-  },
-  // A# / Bb
-  "A#": {
-    highlight: "bg-orange-900",
-    active: "bg-orange-500",
-  },
-  "Bb": {
-    highlight: "bg-yellow-900",
-    active: "bg-yellow-500",
-  },
-} as const;
-
-type NoteHelpers = {
-  getNoteId: (note: string, octave: number) => string;
-  isActive: (note: string, octave: number) => boolean;
-  isHighlighted: (note: string, octave: number) => boolean;
-  getEnharmonicEquivalents: (note: string, octave: number) => string[];
-};
+import { useNoteHelpers } from "./use-note-helpers";
 
 export function useColorClasses(
   highlightedNotes: Ref<string[]>,
@@ -98,11 +14,13 @@ export function useColorClasses(
   internalActiveNotes: Ref<string[]>,
   colorMode: ComputedRef<"per-note" | "mono">,
   octaveNumbers: ComputedRef<number[]>,
-  whiteKeys: readonly WhiteNote[],
-  blackKeys: readonly BlackNote[],
-  noteHelpers: NoteHelpers,
 ) {
-  const { getNoteId, isActive, isHighlighted, getEnharmonicEquivalents } = noteHelpers;
+  // Get note helpers
+  const { getNoteId, isActive, isHighlighted, getEnharmonicEquivalents } = useNoteHelpers(
+    highlightedNotes,
+    activeNotes,
+    internalActiveNotes,
+  );
 
   // Helper function to get white key color classes
   function getWhiteKeyColorClasses(note: WhiteNote, octave: number): string {
@@ -119,8 +37,8 @@ export function useColorClasses(
     }
 
     // Per-note color mode
-    const baseNote = note.charAt(0) as keyof typeof noteColorMap;
-    const colorMap = noteColorMap[baseNote];
+    const baseNote = note.charAt(0) as keyof typeof NOTE_COLOR_MAP;
+    const colorMap = NOTE_COLOR_MAP[baseNote];
 
     if (!colorMap)
       return "";
@@ -145,7 +63,7 @@ export function useColorClasses(
     }
 
     // Per-note color mode - find which specific note from the props is causing this highlight/active state
-    let targetNote: keyof typeof blackKeyColorMap = note as keyof typeof blackKeyColorMap;
+    let targetNote: keyof typeof BLACK_KEY_COLOR_MAP = note as keyof typeof BLACK_KEY_COLOR_MAP;
 
     // Check both highlighted and active notes to find the exact note that triggered this
     const allRelevantNotes = [
@@ -162,21 +80,21 @@ export function useColorClasses(
     for (const equiv of equivalents) {
       if (allRelevantNotes.includes(equiv)) {
         const [equivNote] = equiv.match(/[A-G][#b]?/) || [];
-        if (equivNote && equivNote in blackKeyColorMap) {
+        if (equivNote && equivNote in BLACK_KEY_COLOR_MAP) {
           // Prioritize flat notation over sharp
           if (equivNote.includes("b")) {
-            targetNote = equivNote as keyof typeof blackKeyColorMap;
+            targetNote = equivNote as keyof typeof BLACK_KEY_COLOR_MAP;
             foundFlatNote = true;
             break;
           }
           else if (!foundFlatNote) {
-            targetNote = equivNote as keyof typeof blackKeyColorMap;
+            targetNote = equivNote as keyof typeof BLACK_KEY_COLOR_MAP;
           }
         }
       }
     }
 
-    const colorMap = blackKeyColorMap[targetNote as keyof typeof blackKeyColorMap];
+    const colorMap = BLACK_KEY_COLOR_MAP[targetNote as keyof typeof BLACK_KEY_COLOR_MAP];
     if (!colorMap)
       return "";
 
@@ -192,7 +110,7 @@ export function useColorClasses(
     // Generate classes for all possible notes
     octaveNumbers.value.forEach((octave) => {
       // White keys
-      whiteKeys.forEach((note) => {
+      WHITE_KEYS.forEach((note) => {
         const noteId = getNoteId(note, octave);
         const colorClass = getWhiteKeyColorClasses(note, octave);
         if (colorClass) {
@@ -201,7 +119,7 @@ export function useColorClasses(
       });
 
       // Black keys
-      blackKeys.forEach((note) => {
+      BLACK_KEYS.forEach((note) => {
         const noteId = getNoteId(note, octave);
         const colorClass = getBlackKeyColorClasses(note, octave);
         if (colorClass) {

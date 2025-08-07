@@ -46,9 +46,11 @@ export function useNoteHelpers(
   // Check if a note is active (including enharmonic equivalents)
   function isActive(note: string, octave: number): boolean {
     const equivalents = getEnharmonicEquivalents(note, octave);
-    return equivalents.some(equiv =>
+    const result = equivalents.some(equiv =>
       activeNotes.value.includes(equiv) || internalActiveNotes.value.includes(equiv),
     );
+
+    return result;
   }
 
   // Helper function to determine display note (flat vs sharp preference)

@@ -22,7 +22,7 @@
 -->
 
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
 
 import type { VisualPianoEmits, VisualPianoProps } from "~/types/piano";
 
@@ -35,6 +35,7 @@ import { BLACK_KEYS, MAX_OCTAVES, MIN_OCTAVES, WHITE_KEYS } from "~/constants/pi
 // Props with validation and defaults
 const props = withDefaults(defineProps<VisualPianoProps>(), {
   octaves: 2,
+  startOctave: 1,
   theme: "light",
   labelStyle: "none",
   highlightedNotes: () => [],
@@ -62,14 +63,17 @@ const validatedOctaves = computed(() => {
   return octaves;
 });
 
-// Generate octave numbers based on validated octaves
+// Generate octave numbers based on validated octaves and startOctave
 const octaveNumbers = computed(() => {
-  return Array.from({ length: validatedOctaves.value }, (_, i) => i + 1);
+  return Array.from({ length: validatedOctaves.value }, (_, i) => props.startOctave + i);
 });
 
+// The last visible octave number in the rendered range
+const lastVisibleOctave = computed(() => props.startOctave + validatedOctaves.value - 1);
+
 // Convert props to refs for composables
-const highlightedNotesRef = computed(() => props.highlightedNotes);
-const activeNotesRef = computed(() => props.activeNotes);
+const highlightedNotesRef = ref<string[]>([]);
+const activeNotesRef = ref<string[]>([]);
 
 // Initialize composables
 const {
@@ -87,7 +91,6 @@ const {
   activeNotesRef,
   internalActiveNotes,
   computed(() => props.colorMode),
-  octaveNumbers,
 );
 
 const {
@@ -98,6 +101,19 @@ const {
 
 // SSR-compatible ResizeObserver setup
 useResizeObserver(containerRef, measureKeyWidth);
+
+// Synchronize internalActiveNotes with external activeNotes prop
+watch(() => props.activeNotes, (newActiveNotes) => {
+  // Update internalActiveNotes to match external activeNotes
+  internalActiveNotes.value = [...newActiveNotes];
+  // Also update the activeNotesRef for composables
+  activeNotesRef.value = [...newActiveNotes];
+}, { deep: true, immediate: true });
+
+// Also watch for changes in highlightedNotes to ensure proper reactivity
+watch(() => props.highlightedNotes, (newHighlightedNotes) => {
+  highlightedNotesRef.value = [...newHighlightedNotes];
+}, { deep: true, immediate: true });
 
 // Event handling functions
 
@@ -192,6 +208,42 @@ function getAriaLabel(note: string, octave: number): string {
           </span>
         </button>
 
+        <!-- Trailing high C (C of the next octave) only on the last visible octave -->
+        <button
+          v-if="octave === lastVisibleOctave"
+          :key="`C-${octave + 1}-trailing`"
+          type="button"
+          class="white-key piano-key relative select-none flex items-end justify-center pb-4 transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-opacity-50 focus-visible:z-20"
+          :class="[
+            getNoteColorClass('C', octave + 1, false),
+            {
+              'cursor-not-allowed': disabled,
+              'cursor-pointer': !disabled,
+            },
+          ]"
+          :disabled="disabled"
+          :tabindex="disabled ? -1 : 0"
+          :aria-label="getAriaLabel('C', octave + 1)"
+          :aria-pressed="isActive('C', octave + 1)"
+          role="button"
+          @pointerdown="handleKeyPress('C', octave + 1)"
+          @pointerup="handleKeyRelease('C', octave + 1)"
+          @pointerleave="handleKeyRelease('C', octave + 1)"
+          @keydown.space.exact.prevent="handleKeyPress('C', octave + 1)"
+          @keyup.space.exact.prevent="handleKeyRelease('C', octave + 1)"
+          @keydown.enter.exact.prevent="handleKeyPress('C', octave + 1)"
+          @keyup.enter.exact.prevent="handleKeyRelease('C', octave + 1)"
+        >
+          <span
+            v-if="labelStyle !== 'none'"
+            class="text-xs font-medium pointer-events-none select-none"
+            :class="getLabelColorClass('C', octave + 1, false)"
+            aria-hidden="true"
+          >
+            {{ getNoteLabel('C', octave + 1, labelStyle, showOctaveLabels) }}
+          </span>
+        </button>
+
         <!-- Black keys with responsive positioning -->
         <button
           v-for="note in BLACK_KEYS"
@@ -236,6 +288,7 @@ function getAriaLabel(note: string, octave: number): string {
 
 <style scoped>
 .visual-piano {
+  isolation: isolate;
   scrollbar-width: none;
   -ms-overflow-style: none;
 }
@@ -251,6 +304,7 @@ function getAriaLabel(note: string, octave: number): string {
 
 /* White key styling using standard Tailwind classes */
 .white-key {
+  z-index: 0;
   width: clamp(32px, 4vw, 56px);
   height: 224px;
   border: 1px solid rgb(229, 231, 235, 0.3);
@@ -281,6 +335,7 @@ function getAriaLabel(note: string, octave: number): string {
 
 /* Black key styling using standard Tailwind classes */
 .black-key {
+  z-index: 10;
   width: clamp(19px, 2.4vw, 34px);
   height: 134px;
   border: 1px solid rgb(17, 24, 39, 0.3);
@@ -313,7 +368,7 @@ function getAriaLabel(note: string, octave: number): string {
 .piano-key:focus-visible {
   outline: 2px solid rgb(139 92 246);
   outline-offset: 2px;
-  z-index: 20;
+  z-index: 1;
 }
 
 /* Ensure Tailwind color classes take precedence over base styles */

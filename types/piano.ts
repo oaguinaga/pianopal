@@ -23,6 +23,7 @@ export type Note = WhiteNote | BlackNote | FlatNote;
 // Piano component prop types
 export type VisualPianoProps = {
   octaves?: number;
+  startOctave?: number;
   theme?: "light" | "dark";
   labelStyle?: "letter" | "do-re-mi" | "none";
   highlightedNotes?: string[];

@@ -10,6 +10,8 @@ const EnvSchema = z.object({
   BETTER_AUTH_URL: z.string(),
   GOOGLE_CLIENT_ID: z.string(),
   GOOGLE_CLIENT_SECRET: z.string(),
+  CI: z.string().optional(),
+  STORYBOOK: z.string().optional(),
 });
 
 export type EnvSchema = z.infer<typeof EnvSchema>;

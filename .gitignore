@@ -25,3 +25,34 @@ logs
 
 # Drizzle
 local.db*
+
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+dev-debug.log
+# Dependency directories
+node_modules/
+# Environment variables
+# Editor directories and files
+.vscode
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+# OS specific
+
+# Task files
+tasks.json
+tasks/ 
+
+.cursor/
+.taskmaster/
+PRD.txt
+*storybook.log
+storybook-static
+
+# Playwright Test Results
+tests/playwright-report/
+tests/test-results/
+tests/reports/

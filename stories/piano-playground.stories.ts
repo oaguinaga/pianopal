@@ -55,6 +55,10 @@ const meta: Meta<typeof PianoPlayground> = {
       control: "boolean",
       description: "Show computer keyboard hints inside keys",
     },
+    midiInput: {
+      control: "boolean",
+      description: "Enable Web MIDI input UI and listeners (if supported)",
+    },
   },
   args: {
     octaveRange: 3,
@@ -66,6 +70,7 @@ const meta: Meta<typeof PianoPlayground> = {
     showOctaveLabels: false,
     highlightedNotes: [],
     showKeyboardHints: true,
+    midiInput: false,
   },
 };
 
@@ -237,6 +242,23 @@ export const WithKeyboardHints: Story = {
     docs: {
       description: {
         story: "PianoPlayground with computer keyboard hints rendered inside the keys using DaisyUI kbd elements.",
+      },
+    },
+  },
+};
+
+// MIDI UI (non-interactive in most CI browsers)
+export const WithMidiUi: Story = {
+  args: {
+    octaveRange: 1,
+    startOctave: 4,
+    showKeyboardGuide: true,
+    midiInput: true,
+  },
+  parameters: {
+    docs: {
+      description: {
+        story: "Shows the MIDI device selection UI. In unsupported environments, a helpful message is displayed.",
       },
     },
   },

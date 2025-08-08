@@ -20,6 +20,7 @@ export const MIN_OCTAVES = 1;
 export const MAX_OCTAVES = 7;
 export const WHITE_KEYS_PER_OCTAVE = 7;
 export const BLACK_KEYS_PER_OCTAVE = 5;
+export const SEMITONES_PER_OCTAVE = 12;
 
 // Black key positioning mapping within each octave
 export const BLACK_KEY_MAPPING = {
@@ -127,3 +128,19 @@ export const BLACK_KEY_COLOR_MAP = {
 
 export const LABEL_STYLE_OPTIONS = ["letter", "do-re-mi", "none"] as const;
 export const DEFAULT_LABEL_STYLE: LabelStyle = "none";
+
+// Ordered pitch class names for MIDI mapping and note utilities
+export const NOTE_NAMES = [
+  "C",
+  "C#",
+  "D",
+  "D#",
+  "E",
+  "F",
+  "F#",
+  "G",
+  "G#",
+  "A",
+  "A#",
+  "B",
+] as const;

@@ -13,6 +13,7 @@ const testColorMode = ref<ColorMode>("per-note");
 const testShowOctaveLabels = ref(false);
 const testShowKeyboardHints = ref(true);
 const testShowKeyboardGuide = ref(true);
+const testEnableMidi = ref(false);
 
 const selectedOctaveIndexFromChild = ref<number>(Math.floor((testOctaveRange.value - 1) / 2));
 
@@ -197,6 +198,17 @@ function handleNoteOff(noteId: string) {
                   >
                 </label>
               </div>
+              <div class="form-control">
+                <label class="label cursor-pointer">
+                  <span class="label-text">Enable MIDI (if supported)</span>
+                  <input
+                    v-model="testEnableMidi"
+                    type="checkbox"
+                    class="checkbox"
+                    @change="blurTargetOrActiveElementOnChange"
+                  >
+                </label>
+              </div>
             </div>
           </div>
 
@@ -219,6 +231,7 @@ function handleNoteOff(noteId: string) {
               :show-octave-labels="testShowOctaveLabels"
               :show-keyboard-guide="testShowKeyboardGuide"
               :show-keyboard-hints="testShowKeyboardHints"
+              :midi-input="testEnableMidi"
               :highlighted-notes="highlightedNotes"
 
               @note-on="handleNoteOn"

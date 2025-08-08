@@ -1,10 +1,8 @@
 import type { ComputedRef, Ref } from "vue";
 
-import { computed } from "vue";
+import type { BlackNote, ColorMode, WhiteNote } from "~/types/piano";
 
-import type { BlackNote, WhiteNote } from "~/types/piano";
-
-import { BLACK_KEY_COLOR_MAP, BLACK_KEYS, NOTE_COLOR_MAP, WHITE_KEYS } from "~/constants/piano";
+import { BLACK_KEY_COLOR_MAP, NOTE_COLOR_MAP } from "~/constants/piano";
 
 import { useNoteHelpers } from "./use-note-helpers";
 
@@ -12,11 +10,10 @@ export function useColorClasses(
   highlightedNotes: Ref<string[]>,
   activeNotes: Ref<string[]>,
   internalActiveNotes: Ref<string[]>,
-  colorMode: ComputedRef<"per-note" | "mono">,
-  octaveNumbers: ComputedRef<number[]>,
+  colorMode: ComputedRef<ColorMode>,
 ) {
   // Get note helpers
-  const { getNoteId, isActive, isHighlighted, getEnharmonicEquivalents } = useNoteHelpers(
+  const { isActive, isHighlighted, getEnharmonicEquivalents } = useNoteHelpers(
     highlightedNotes,
     activeNotes,
     internalActiveNotes,
@@ -31,9 +28,10 @@ export function useColorClasses(
       return "";
 
     if (colorMode.value === "mono") {
-      return isNoteActive
+      const result = isNoteActive
         ? "bg-indigo-300 active-key"
         : "bg-indigo-200 highlighted-key";
+      return result;
     }
 
     // Per-note color mode
@@ -43,9 +41,11 @@ export function useColorClasses(
     if (!colorMap)
       return "";
 
-    return isNoteActive
+    const result = isNoteActive
       ? `${colorMap.active} active-key`
       : `${colorMap.highlight} highlighted-key`;
+
+    return result;
   }
 
   // Helper function to get black key color classes
@@ -103,38 +103,13 @@ export function useColorClasses(
       : `${colorMap.highlight} highlighted-key`;
   }
 
-  // Create a computed property for all key color classes
-  const keyColorClasses = computed(() => {
-    const classes: Record<string, string> = {};
+  // Get color classes for a note (direct reactive approach)
+  function getNoteColorClass(note: string, octave: number, isBlackKey: boolean): string {
+    const result = isBlackKey
+      ? getBlackKeyColorClasses(note as BlackNote, octave)
+      : getWhiteKeyColorClasses(note as WhiteNote, octave);
 
-    // Generate classes for all possible notes
-    octaveNumbers.value.forEach((octave) => {
-      // White keys
-      WHITE_KEYS.forEach((note) => {
-        const noteId = getNoteId(note, octave);
-        const colorClass = getWhiteKeyColorClasses(note, octave);
-        if (colorClass) {
-          classes[noteId] = colorClass;
-        }
-      });
-
-      // Black keys
-      BLACK_KEYS.forEach((note) => {
-        const noteId = getNoteId(note, octave);
-        const colorClass = getBlackKeyColorClasses(note, octave);
-        if (colorClass) {
-          classes[noteId] = colorClass;
-        }
-      });
-    });
-
-    return classes;
-  });
-
-  // Get color classes for a note (now uses computed property)
-  function getNoteColorClass(note: string, octave: number, _isBlackKey: boolean): string {
-    const noteId = getNoteId(note, octave);
-    return keyColorClasses.value[noteId] || "";
+    return result;
   }
 
   // Get label color based on key state
@@ -144,7 +119,7 @@ export function useColorClasses(
 
     // Use dark text on highlighted/active keys for better contrast
     if (isNoteActive || isNoteHighlighted) {
-      return isBlackKey ? "text-gray-950" : "text-gray-950";
+      return isBlackKey ? "text-white" : "text-gray-950";
     }
 
     // Default label colors
@@ -152,7 +127,6 @@ export function useColorClasses(
   }
 
   return {
-    keyColorClasses,
     getNoteColorClass,
     getLabelColorClass,
   };

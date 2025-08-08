@@ -1,5 +1,7 @@
 import type { Ref } from "vue";
 
+import type { LabelStyle } from "~/types/piano";
+
 // Enharmonic equivalents mapping (flat to sharp)
 const enharmonicMap: Record<string, string> = {
   Db: "C#",
@@ -46,9 +48,11 @@ export function useNoteHelpers(
   // Check if a note is active (including enharmonic equivalents)
   function isActive(note: string, octave: number): boolean {
     const equivalents = getEnharmonicEquivalents(note, octave);
-    return equivalents.some(equiv =>
+    const result = equivalents.some(equiv =>
       activeNotes.value.includes(equiv) || internalActiveNotes.value.includes(equiv),
     );
+
+    return result;
   }
 
   // Helper function to determine display note (flat vs sharp preference)
@@ -94,8 +98,8 @@ export function useNoteHelpers(
       "Ab": "La♭",
       "A": "La",
       "A#": "La#",
-      "Bb": "Ti♭",
-      "B": "Ti",
+      "Bb": "Si♭",
+      "B": "Si",
     } as const;
 
     return doReMiMap[note] || note;
@@ -110,7 +114,7 @@ export function useNoteHelpers(
   function getNoteLabel(
     note: string,
     octave: number,
-    labelStyle: "letter" | "do-re-mi" | "none",
+    labelStyle: LabelStyle,
     showOctaveLabels: boolean,
   ): string {
     if (labelStyle === "none")

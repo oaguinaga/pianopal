@@ -21,14 +21,17 @@ export type FlatNote = "Db" | "Eb" | "Gb" | "Ab" | "Bb";
 export type Note = WhiteNote | BlackNote | FlatNote;
 
 // Piano component prop types
+export type KeyHandler = (note: string, octave: number) => void;
+
 export type VisualPianoProps = {
   octaves?: number;
+  startOctave?: number;
   theme?: "light" | "dark";
-  labelStyle?: "letter" | "do-re-mi" | "none";
+  labelStyle?: LabelStyle;
   highlightedNotes?: string[];
   activeNotes?: string[];
   disabled?: boolean;
-  colorMode?: "per-note" | "mono";
+  colorMode?: ColorMode;
   inputEnabled?: boolean;
   showOctaveLabels?: boolean;
 };
@@ -62,3 +65,30 @@ export type BlackKeyPositionMap = typeof BLACK_KEY_POSITION_MAP;
 export type BlackKeyMappingKey = keyof BlackKeyMapping;
 export type BlackKeyColorMapKey = keyof BlackKeyColorMap;
 export type NoteColorMapKey = keyof NoteColorMap;
+
+// Keyboard composable config
+export type UseKeyboardPianoConfig = {
+  octaveRange: { value: number };
+  startOctave: { value: number };
+  emitNoteOn: (noteId: string) => void;
+  emitNoteOff: (noteId: string) => void;
+  /**
+   * Return the root element of the interactive piano area.
+   * Used to avoid marking the keyboard as blocked when focus
+   * is within the piano (e.g., focused key buttons).
+   */
+  getRootEl?: () => HTMLElement | null | undefined;
+};
+
+// Label style used across components and stories
+export type LabelStyle = "letter" | "do-re-mi" | "none";
+export type ColorMode = "per-note" | "mono";
+
+// Computer keyboard types used by the keyboard composable (public for reuse)
+export type KeyboardKeyWhite = "a" | "s" | "d" | "f" | "g" | "h" | "j" | "k";
+export type KeyboardKeyBlack = "w" | "e" | "t" | "y" | "u";
+export type KeyboardKeyNumber = "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9";
+export type PianoKeyboardKey = KeyboardKeyWhite | KeyboardKeyBlack | KeyboardKeyNumber;
+
+export type KeyboardToPianoWhiteMap = Record<KeyboardKeyWhite, { note: WhiteNote; deltaOctave?: 0 | 1 }>;
+export type KeyboardToPianoBlackMap = Record<KeyboardKeyBlack, { note: BlackNote }>;

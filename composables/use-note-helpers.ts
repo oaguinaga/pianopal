@@ -1,5 +1,7 @@
 import type { Ref } from "vue";
 
+import type { LabelStyle } from "~/types/piano";
+
 // Enharmonic equivalents mapping (flat to sharp)
 const enharmonicMap: Record<string, string> = {
   Db: "C#",
@@ -96,8 +98,8 @@ export function useNoteHelpers(
       "Ab": "La♭",
       "A": "La",
       "A#": "La#",
-      "Bb": "Ti♭",
-      "B": "Ti",
+      "Bb": "Si♭",
+      "B": "Si",
     } as const;
 
     return doReMiMap[note] || note;
@@ -112,7 +114,7 @@ export function useNoteHelpers(
   function getNoteLabel(
     note: string,
     octave: number,
-    labelStyle: "letter" | "do-re-mi" | "none",
+    labelStyle: LabelStyle,
     showOctaveLabels: boolean,
   ): string {
     if (labelStyle === "none")

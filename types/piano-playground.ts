@@ -5,14 +5,16 @@
  * Centralized type definitions for better maintainability.
  */
 
+import type { ColorMode, LabelStyle } from "./piano";
+
 // PianoPlayground component prop types
 export type PianoPlaygroundProps = {
   octaveRange?: number;
   startOctave?: number;
   showKeyboardGuide?: boolean;
-  labelStyle?: "letter" | "do-re-mi" | "none";
+  labelStyle?: LabelStyle;
   theme?: "light" | "dark";
-  colorMode?: "per-note" | "mono";
+  colorMode?: ColorMode;
   showOctaveLabels?: boolean;
   highlightedNotes?: string[];
 };
@@ -21,6 +23,7 @@ export type PianoPlaygroundProps = {
 export type PianoPlaygroundEmits = {
   noteOn: [note: string];
   noteOff: [note: string];
+  selectedOctaveChange: [selectedOctaveIndex: number];
 };
 
 // Keyboard mapping types
@@ -59,5 +62,6 @@ export type BaseKeyboardMapping = {
 
 // Component exposed methods
 export type PianoPlaygroundExposed = {
-  focusPiano: () => void;
+  focusPiano?: () => void;
+  selectedOctaveIndex?: { value: number };
 };

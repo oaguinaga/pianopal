@@ -1,15 +1,41 @@
 <script setup lang="ts">
+import type { ColorMode, LabelStyle } from "~/types/piano";
+
+import { blurTargetOrActiveElementOnChange } from "~/utils/dom";
 // Test data for piano component
-const highlightedNotes = ref(["C4", "E4", "G4", "C#4"]); // C Major chord
 const activeNotes = ref<string[]>([]); // Active notes from keyboard input
 
 // Test configuration options
 const testOctaveRange = ref(3);
 const testStartOctave = ref(3);
-const testLabelStyle = ref<"letter" | "do-re-mi" | "none">("letter");
-const testColorMode = ref<"per-note" | "mono">("per-note");
+const testLabelStyle = ref<LabelStyle>("letter");
+const testColorMode = ref<ColorMode>("per-note");
 const testShowOctaveLabels = ref(false);
 const testShowKeyboardGuide = ref(true);
+
+const selectedOctaveIndexFromChild = ref<number>(Math.floor((testOctaveRange.value - 1) / 2));
+
+// Listen to explicit child event instead of exposed ref
+function onSelectedOctaveChange(idx: number) {
+  selectedOctaveIndexFromChild.value = idx;
+}
+
+const selectedOctaveForHighlights = computed(() => testStartOctave.value + selectedOctaveIndexFromChild.value);
+
+const highlightedNotes = computed(() => {
+  const octave = selectedOctaveForHighlights.value;
+  return [
+    `C${octave}`,
+    `E${octave}`,
+    `G${octave}`,
+    `B${octave}`,
+    `Eb${octave}`,
+    `F#${octave}`,
+    `Bb${octave}`,
+    `C#${octave}`,
+  ];
+}); // Highlight notes using the currently selected octave
+// removed local handleConfigChange in favor of reusable util
 
 function handleNoteOn(noteId: string) {
   if (!activeNotes.value.includes(noteId)) {
@@ -21,16 +47,6 @@ function handleNoteOn(noteId: string) {
 function handleNoteOff(noteId: string) {
   activeNotes.value = activeNotes.value.filter(n => n !== noteId);
   console.warn("Note off:", noteId);
-}
-
-// Test function to manually trigger a note
-function testVisualFeedback() {
-  console.log("Testing visual feedback...");
-  activeNotes.value = ["C4"];
-  setTimeout(() => {
-    activeNotes.value = [];
-    console.log("Test completed");
-  }, 2000);
 }
 </script>
 
@@ -65,6 +81,7 @@ function testVisualFeedback() {
                 <select
                   v-model="testOctaveRange"
                   class="select select-bordered"
+                  @change="blurTargetOrActiveElementOnChange"
                 >
                   <option :value="1">
                     1 Octave
@@ -90,6 +107,7 @@ function testVisualFeedback() {
                 <select
                   v-model="testStartOctave"
                   class="select select-bordered"
+                  @change="blurTargetOrActiveElementOnChange"
                 >
                   <option :value="1">
                     Octave 1
@@ -115,6 +133,7 @@ function testVisualFeedback() {
                 <select
                   v-model="testLabelStyle"
                   class="select select-bordered"
+                  @change="blurTargetOrActiveElementOnChange"
                 >
                   <option value="letter">
                     Letter (C, D, E...)
@@ -134,6 +153,7 @@ function testVisualFeedback() {
                 <select
                   v-model="testColorMode"
                   class="select select-bordered"
+                  @change="blurTargetOrActiveElementOnChange"
                 >
                   <option value="per-note">
                     Per-Note Colors
@@ -150,6 +170,7 @@ function testVisualFeedback() {
                     v-model="testShowKeyboardGuide"
                     type="checkbox"
                     class="checkbox"
+                    @change="blurTargetOrActiveElementOnChange"
                   >
                 </label>
               </div>
@@ -160,6 +181,7 @@ function testVisualFeedback() {
                     v-model="testShowOctaveLabels"
                     type="checkbox"
                     class="checkbox"
+                    @change="blurTargetOrActiveElementOnChange"
                   >
                 </label>
               </div>
@@ -187,77 +209,8 @@ function testVisualFeedback() {
               :highlighted-notes="highlightedNotes"
               @note-on="handleNoteOn"
               @note-off="handleNoteOff"
+              @selected-octave-change="onSelectedOctaveChange"
             />
-          </div>
-
-          <!-- Debug Info -->
-          <div class="bg-base-200 p-4 rounded-lg">
-            <h4 class="font-semibold mb-2">
-              Debug Information:
-            </h4>
-            <p class="text-sm mb-1">
-              <strong>Highlighted Notes:</strong> {{ highlightedNotes.join(', ') }} (C Major chord)
-            </p>
-            <p class="text-sm mb-1">
-              <strong>Active Notes:</strong> {{ activeNotes.length > 0 ? activeNotes.join(', ') : 'None' }}
-            </p>
-            <p class="text-sm mb-2">
-              <strong>Current Configuration:</strong> {{ testOctaveRange }} octaves starting from octave {{ testStartOctave }}, {{ testLabelStyle === 'none' ? 'no' : testLabelStyle }} labels, {{ testColorMode }} colors{{ testShowOctaveLabels ? ', with octave numbers' : '' }}
-            </p>
-            <p class="text-sm text-base-content/70">
-              Press keyboard keys to interact with the piano. The component automatically handles focus management and prevents stuck keys.
-            </p>
-
-            <!-- Test Button -->
-            <div class="mt-4">
-              <button
-                type="button"
-                class="btn btn-primary btn-sm"
-                @click="testVisualFeedback"
-              >
-                Test Visual Feedback (C4)
-              </button>
-              <p class="text-xs text-base-content/70 mt-1">
-                Click this button to test if the visual feedback is working. C4 should highlight for 2 seconds.
-              </p>
-            </div>
-          </div>
-
-          <!-- Keyboard Mapping Reference -->
-          <div class="bg-base-200 p-4 rounded-lg">
-            <h4 class="font-semibold mb-2">
-              Keyboard Mapping Reference:
-            </h4>
-            <div class="grid grid-cols-2 md:grid-cols-3 gap-2 text-sm">
-              <div><strong>A:</strong> C4</div>
-              <div><strong>W:</strong> C#4</div>
-              <div><strong>S:</strong> D4</div>
-              <div><strong>E:</strong> D#4</div>
-              <div><strong>D:</strong> E4</div>
-              <div><strong>F:</strong> F4</div>
-              <div><strong>T:</strong> F#4</div>
-              <div><strong>G:</strong> G4</div>
-              <div><strong>Y:</strong> G#4</div>
-              <div><strong>H:</strong> A4</div>
-              <div><strong>U:</strong> A#4</div>
-              <div><strong>J:</strong> B4</div>
-              <div><strong>K:</strong> C5</div>
-              <div><strong>O:</strong> C#5</div>
-              <div><strong>L:</strong> D5</div>
-              <div><strong>P:</strong> D#5</div>
-              <div><strong>;:</strong> E5</div>
-              <div><strong>':</strong> F5</div>
-              <div><strong>Z:</strong> C3</div>
-              <div><strong>X:</strong> D3</div>
-              <div><strong>C:</strong> E3</div>
-              <div><strong>V:</strong> F3</div>
-              <div><strong>B:</strong> G3</div>
-              <div><strong>N:</strong> A3</div>
-              <div><strong>M:</strong> B3</div>
-            </div>
-            <p class="text-sm text-base-content/70 mt-2">
-              Use the octave shift buttons in the keyboard guide to change the octave range.
-            </p>
           </div>
         </div>
       </div>

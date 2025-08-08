@@ -22,7 +22,7 @@
 -->
 
 <script setup lang="ts">
-import { computed, ref, watch } from "vue";
+import { computed, ref, useId, watch } from "vue";
 
 import type { VisualPianoEmits, VisualPianoProps } from "~/types/piano";
 
@@ -31,6 +31,9 @@ import { useKeyboardMeasurement } from "~/composables/use-keyboard-measurement";
 import { useNoteHelpers } from "~/composables/use-note-helpers";
 import { useResizeObserver } from "~/composables/use-resize-observer";
 import { BLACK_KEYS, MAX_OCTAVES, MIN_OCTAVES, WHITE_KEYS } from "~/constants/piano";
+
+import BlackKey from "./piano/black-key.vue";
+import WhiteKey from "./piano/white-key.vue";
 
 // Props with validation and defaults
 const props = withDefaults(defineProps<VisualPianoProps>(), {
@@ -172,115 +175,51 @@ function getAriaLabel(note: string, octave: number): string {
         class="octave-container relative flex gap-px bg-transparent"
       >
         <!-- White keys -->
-        <button
+        <WhiteKey
           v-for="note in WHITE_KEYS"
           :key="`${note}-${octave}`"
-          type="button"
-          class="white-key piano-key relative select-none flex items-end justify-center pb-4 transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-opacity-50 focus-visible:z-20"
-          :class="[
-            getNoteColorClass(note, octave, false),
-            {
-              'cursor-not-allowed': disabled,
-              'cursor-pointer': !disabled,
-            },
-          ]"
+          :note="note"
+          :octave="octave"
           :disabled="disabled"
-          :tabindex="disabled ? -1 : 0"
+          :color-class="getNoteColorClass(note, octave, false)"
+          :label-text="labelStyle !== 'none' ? getNoteLabel(note, octave, labelStyle, showOctaveLabels) : ''"
+          :label-color-class="getLabelColorClass(note, octave, false)"
           :aria-label="getAriaLabel(note, octave)"
-          :aria-pressed="isActive(note, octave)"
-          role="button"
-          @pointerdown="handleKeyPress(note, octave)"
-          @pointerup="handleKeyRelease(note, octave)"
-          @pointerleave="handleKeyRelease(note, octave)"
-          @keydown.space.exact.prevent="handleKeyPress(note, octave)"
-          @keyup.space.exact.prevent="handleKeyRelease(note, octave)"
-          @keydown.enter.exact.prevent="handleKeyPress(note, octave)"
-          @keyup.enter.exact.prevent="handleKeyRelease(note, octave)"
-        >
-          <!-- Note label -->
-          <span
-            v-if="labelStyle !== 'none'"
-            class="text-xs font-medium pointer-events-none select-none"
-            :class="getLabelColorClass(note, octave, false)"
-            aria-hidden="true"
-          >
-            {{ getNoteLabel(note, octave, labelStyle, showOctaveLabels) }}
-          </span>
-        </button>
+          :on-press="handleKeyPress"
+          :on-release="handleKeyRelease"
+        />
 
         <!-- Trailing high C (C of the next octave) only on the last visible octave -->
-        <button
+        <WhiteKey
           v-if="octave === lastVisibleOctave"
           :key="`C-${octave + 1}-trailing`"
-          type="button"
-          class="white-key piano-key relative select-none flex items-end justify-center pb-4 transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-opacity-50 focus-visible:z-20"
-          :class="[
-            getNoteColorClass('C', octave + 1, false),
-            {
-              'cursor-not-allowed': disabled,
-              'cursor-pointer': !disabled,
-            },
-          ]"
+          note="C"
+          :octave="octave + 1"
           :disabled="disabled"
-          :tabindex="disabled ? -1 : 0"
+          :color-class="getNoteColorClass('C', octave + 1, false)"
+          :label-text="labelStyle !== 'none' ? getNoteLabel('C', octave + 1, labelStyle, showOctaveLabels) : ''"
+          :label-color-class="getLabelColorClass('C', octave + 1, false)"
           :aria-label="getAriaLabel('C', octave + 1)"
-          :aria-pressed="isActive('C', octave + 1)"
-          role="button"
-          @pointerdown="handleKeyPress('C', octave + 1)"
-          @pointerup="handleKeyRelease('C', octave + 1)"
-          @pointerleave="handleKeyRelease('C', octave + 1)"
-          @keydown.space.exact.prevent="handleKeyPress('C', octave + 1)"
-          @keyup.space.exact.prevent="handleKeyRelease('C', octave + 1)"
-          @keydown.enter.exact.prevent="handleKeyPress('C', octave + 1)"
-          @keyup.enter.exact.prevent="handleKeyRelease('C', octave + 1)"
-        >
-          <span
-            v-if="labelStyle !== 'none'"
-            class="text-xs font-medium pointer-events-none select-none"
-            :class="getLabelColorClass('C', octave + 1, false)"
-            aria-hidden="true"
-          >
-            {{ getNoteLabel('C', octave + 1, labelStyle, showOctaveLabels) }}
-          </span>
-        </button>
+          :on-press="handleKeyPress"
+          :on-release="handleKeyRelease"
+        />
 
         <!-- Black keys with responsive positioning -->
-        <button
+        <BlackKey
           v-for="note in BLACK_KEYS"
           :key="`${note}-${octave}`"
-          type="button"
-          class="black-key piano-key absolute z-10 select-none flex items-end justify-center pb-2 transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-opacity-50 focus-visible:z-20"
-          :class="[
-            getNoteColorClass(note, octave, true),
-            {
-              'cursor-not-allowed': disabled,
-              'cursor-pointer': !disabled,
-            },
-          ]"
-          :style="getBlackKeyPosition(note, actualWhiteKeyWidth)"
+          :note="note"
+          :octave="octave"
           :disabled="disabled"
-          :tabindex="disabled ? -1 : 0"
+          :white-key-width="actualWhiteKeyWidth"
+          :color-class="getNoteColorClass(note, octave, true)"
+          :label-text="labelStyle !== 'none' ? getNoteLabel(note, octave, labelStyle, showOctaveLabels) : ''"
+          :label-color-class="getLabelColorClass(note, octave, true)"
           :aria-label="getAriaLabel(note, octave)"
-          :aria-pressed="isActive(note, octave)"
-          role="button"
-          @pointerdown="handleKeyPress(note, octave)"
-          @pointerup="handleKeyRelease(note, octave)"
-          @pointerleave="handleKeyRelease(note, octave)"
-          @keydown.space.exact.prevent="handleKeyPress(note, octave)"
-          @keyup.space.exact.prevent="handleKeyRelease(note, octave)"
-          @keydown.enter.exact.prevent="handleKeyPress(note, octave)"
-          @keyup.enter.exact.prevent="handleKeyRelease(note, octave)"
-        >
-          <!-- Note label -->
-          <span
-            v-if="labelStyle !== 'none'"
-            class="text-xs font-medium pointer-events-none select-none"
-            :class="getLabelColorClass(note, octave, true)"
-            aria-hidden="true"
-          >
-            {{ getNoteLabel(note, octave, labelStyle, showOctaveLabels) }}
-          </span>
-        </button>
+          :get-black-key-position="getBlackKeyPosition"
+          :on-press="handleKeyPress"
+          :on-release="handleKeyRelease"
+        />
       </div>
     </div>
   </div>
@@ -297,85 +236,7 @@ function getAriaLabel(note: string, octave: number): string {
   display: none;
 }
 
-.piano-key {
-  transform-origin: bottom;
-  transition: all 0.2s ease;
-}
-
-/* White key styling using standard Tailwind classes */
-.white-key {
-  z-index: 0;
-  width: clamp(32px, 4vw, 56px);
-  height: 224px;
-  border: 1px solid rgb(229, 231, 235, 0.3);
-  border-radius: 0 0 0.5rem 0.5rem;
-  box-shadow:
-    0 2px 4px rgba(0, 0, 0, 0.05),
-    inset 0 1px 0 rgba(255, 255, 255, 0.01);
-}
-
-/* Default white key background when no color classes are applied */
-.white-key:not(.highlighted-key):not(.active-key) {
-  background-color: white;
-}
-
-.white-key:hover:not(:disabled):not(.highlighted-key):not(.active-key) {
-  background-color: rgb(249, 250, 251);
-  box-shadow:
-    0 3px 6px rgba(0, 0, 0, 0.08),
-    inset 0 1px 0 rgba(255, 255, 255, 0.95);
-}
-
-.white-key:active:not(:disabled) {
-  transform: translateY(2px);
-  box-shadow:
-    0 1px 2px rgba(0, 0, 0, 0.1),
-    inset 0 2px 4px rgba(0, 0, 0, 0.05);
-}
-
-/* Black key styling using standard Tailwind classes */
-.black-key {
-  z-index: 10;
-  width: clamp(19px, 2.4vw, 34px);
-  height: 134px;
-  border: 1px solid rgb(17, 24, 39, 0.3);
-  border-radius: 0 0 0.375rem 0.375rem;
-  box-shadow:
-    0 3px 6px rgba(0, 0, 0, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
-}
-
-/* Default black key background when no color classes are applied */
-.black-key:not(.highlighted-key):not(.active-key) {
-  background-color: rgb(55, 65, 81);
-}
-
-.black-key:hover:not(:disabled):not(.highlighted-key):not(.active-key) {
-  background-color: rgb(75, 85, 99);
-  box-shadow:
-    0 4px 8px rgba(0, 0, 0, 0.25),
-    inset 0 1px 0 rgba(255, 255, 255, 0.15);
-}
-
-.black-key:active:not(:disabled) {
-  transform: translateY(1px);
-  box-shadow:
-    0 2px 4px rgba(0, 0, 0, 0.2),
-    inset 0 2px 4px rgba(0, 0, 0, 0.15);
-}
-
-/* Enhanced focus styles for accessibility */
-.piano-key:focus-visible {
-  outline: 2px solid rgb(139 92 246);
-  outline-offset: 2px;
-  z-index: 1;
-}
-
-/* Ensure Tailwind color classes take precedence over base styles */
-.piano-key.highlighted-key,
-.piano-key.active-key {
-  background-image: none;
-}
+/* Key-level styles are now encapsulated in WhiteKey/BlackKey components */
 
 /* Mobile responsiveness */
 @media (max-width: 640px) {
@@ -404,20 +265,5 @@ function getAriaLabel(note: string, octave: number): string {
   }
 }
 
-/* Dark theme adjustments */
-.dark .white-key {
-  background-color: rgb(31, 41, 55);
-  border-color: rgb(55, 65, 81);
-}
-
-.dark .white-key:hover:not(:disabled) {
-  background-color: rgb(55, 65, 81);
-}
-
-.dark .black-key {
-  background-color: rgb(31, 41, 55);
-  box-shadow:
-    0 3px 6px rgba(0, 0, 0, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.05);
-}
+/* Dark theme adjustments for container only */
 </style>

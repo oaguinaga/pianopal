@@ -16,8 +16,14 @@ const meta: Meta<typeof VisualPiano> = {
   tags: ["autodocs"],
   argTypes: {
     octaves: {
-      control: { type: "range", min: 1, max: 7, step: 1 },
+      control: { type: "select" },
+      options: [1, 2, 3, 4, 5, 6, 7],
       description: "Number of octaves to display",
+    },
+    startOctave: {
+      control: { type: "select" },
+      options: [0, 1, 2, 3, 4, 5, 6, 7, 8],
+      description: "Starting octave for the first rendered octave",
     },
     theme: {
       control: "select",
@@ -57,6 +63,7 @@ const meta: Meta<typeof VisualPiano> = {
   },
   args: {
     octaves: 2,
+    startOctave: 1,
     theme: "light",
     labelStyle: "none",
     colorMode: "per-note",
@@ -89,7 +96,7 @@ export const SingleOctave: Story = {
   parameters: {
     docs: {
       description: {
-        story: "Single octave piano to test first key (C) visibility. This story specifically tests the fix for the half-key visibility issue.",
+        story: "Single octave piano including trailing high C (next octave). Verifies first C and last trailing C visibility and interaction.",
       },
     },
   },
@@ -407,7 +414,7 @@ export const DoReMiWithFlats: Story = {
   parameters: {
     docs: {
       description: {
-        story: "Tests do-re-mi labels with flat notation (Re♭, Mi♭, Sol♭, La♭, Ti♭).",
+        story: "Tests do-re-mi labels with flat notation (Re♭, Mi♭, Sol♭, La♭, Si♭).",
       },
     },
   },

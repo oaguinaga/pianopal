@@ -15,11 +15,13 @@ const meta: Meta<typeof PianoPlayground> = {
   },
   argTypes: {
     octaveRange: {
-      control: { type: "range", min: 1, max: 7, step: 1 },
+      control: { type: "select" },
+      options: [1, 2, 3, 4, 5, 6, 7],
       description: "Number of octaves to display (1-7)",
     },
     startOctave: {
-      control: { type: "range", min: 0, max: 8, step: 1 },
+      control: { type: "select" },
+      options: [0, 1, 2, 3, 4, 5, 6, 7, 8],
       description: "Starting octave (0-8)",
     },
     showKeyboardGuide: {

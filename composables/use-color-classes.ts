@@ -1,6 +1,6 @@
 import type { ComputedRef, Ref } from "vue";
 
-import type { BlackNote, WhiteNote } from "~/types/piano";
+import type { BlackNote, ColorMode, WhiteNote } from "~/types/piano";
 
 import { BLACK_KEY_COLOR_MAP, NOTE_COLOR_MAP } from "~/constants/piano";
 
@@ -10,7 +10,7 @@ export function useColorClasses(
   highlightedNotes: Ref<string[]>,
   activeNotes: Ref<string[]>,
   internalActiveNotes: Ref<string[]>,
-  colorMode: ComputedRef<"per-note" | "mono">,
+  colorMode: ComputedRef<ColorMode>,
 ) {
   // Get note helpers
   const { isActive, isHighlighted, getEnharmonicEquivalents } = useNoteHelpers(

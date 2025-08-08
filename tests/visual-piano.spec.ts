@@ -10,9 +10,9 @@ test.describe("VisualPiano Component - Core Functionality", () => {
     const iframe = page.frameLocator("iframe[title=\"storybook-preview-iframe\"]");
     await iframe.locator(".visual-piano").waitFor({ timeout: 10000 });
 
-    // Check that white keys are visible
+    // Check that white keys are visible (includes trailing C now, so +1)
     const whiteKeys = iframe.locator(".white-key");
-    await expect(whiteKeys).toHaveCount(14); // 2 octaves * 7 white keys
+    await expect(whiteKeys).toHaveCount(15); // 2 octaves * 7 white keys + 1 trailing C
 
     // Check that black keys are visible
     const blackKeys = iframe.locator(".black-key");

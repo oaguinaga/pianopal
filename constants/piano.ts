@@ -5,6 +5,8 @@
  * Uses UPPERCASE_SNAKE_CASE convention for immutable constants.
  */
 
+import type { LabelStyle } from "~/types/piano";
+
 // Basic note type definitions (to avoid circular imports)
 export type WhiteNote = "C" | "D" | "E" | "F" | "G" | "A" | "B";
 export type BlackNote = "C#" | "D#" | "F#" | "G#" | "A#";
@@ -61,7 +63,7 @@ export const NOTE_COLOR_MAP = {
     active: "bg-emerald-400",
   },
   G: {
-    highlight: "bg-red-400",
+    highlight: "bg-red-300",
     active: "bg-red-400",
   },
   A: {
@@ -97,7 +99,7 @@ export const BLACK_KEY_COLOR_MAP = {
   // F# / Gb
   "F#": {
     highlight: "bg-emerald-900",
-    active: "bg-emerald-500",
+    active: "bg-emerald-600",
   },
   "Gb": {
     highlight: "bg-red-900",
@@ -122,3 +124,6 @@ export const BLACK_KEY_COLOR_MAP = {
     active: "bg-yellow-500",
   },
 } as const;
+
+export const LABEL_STYLE_OPTIONS = ["letter", "do-re-mi", "none"] as const;
+export const DEFAULT_LABEL_STYLE: LabelStyle = "none";

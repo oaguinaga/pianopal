@@ -14,5 +14,8 @@ test.describe("PianoPlayground Storybook - Keyboard Hints", () => {
     // Expect at least one kbd hint to be visible within the visual piano
     const hint = iframe.locator(".visual-piano .white-key kbd, .visual-piano .black-key kbd");
     await expect(hint.first()).toBeVisible({ timeout: 30000 });
+
+    // Visual snapshot for WithKeyboardHints story
+    await expect(iframe.locator(".visual-piano")).toHaveScreenshot("with-keyboard-hints.png");
   });
 });

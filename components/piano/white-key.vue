@@ -1,12 +1,15 @@
 <script setup lang="ts">
 import type { KeyHandler, WhiteNote } from "~/types/piano";
 
+import KeyboardHint from "./keyboard-hint.vue";
+
 const _props = withDefaults(defineProps<{
   note: WhiteNote;
   octave: number;
   disabled?: boolean;
   colorClass?: string;
   labelText?: string;
+  keyboardHint?: string;
   labelColorClass?: string;
   ariaLabel?: string;
   onPress: KeyHandler;
@@ -15,6 +18,7 @@ const _props = withDefaults(defineProps<{
   disabled: false,
   colorClass: "",
   labelText: "",
+  keyboardHint: "",
   labelColorClass: "",
   ariaLabel: "",
 });
@@ -43,12 +47,15 @@ const _props = withDefaults(defineProps<{
     @keydown.enter.exact.prevent="onPress(note, octave)"
     @keyup.enter.exact.prevent="onRelease(note, octave)"
   >
-    <span
-      v-if="labelText"
-      class="text-xs font-medium pointer-events-none select-none"
-      :class="labelColorClass"
-      aria-hidden="true"
-    >{{ labelText }}</span>
+    <div class="pointer-events-none select-none flex flex-col items-center gap-0.5">
+      <KeyboardHint :hint="keyboardHint" />
+      <span
+        v-if="labelText"
+        class="text-xs font-medium"
+        :class="labelColorClass"
+        aria-hidden="true"
+      >{{ labelText }}</span>
+    </div>
   </button>
 </template>
 

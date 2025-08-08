@@ -47,6 +47,8 @@ const props = withDefaults(defineProps<VisualPianoProps>(), {
   colorMode: "per-note",
   inputEnabled: true,
   showOctaveLabels: false,
+  showKeyboardHints: false,
+  keyboardHints: () => ({}),
 });
 
 // Emits
@@ -183,6 +185,7 @@ function getAriaLabel(note: string, octave: number): string {
           :disabled="disabled"
           :color-class="getNoteColorClass(note, octave, false)"
           :label-text="labelStyle !== 'none' ? getNoteLabel(note, octave, labelStyle, showOctaveLabels) : ''"
+          :keyboard-hint="showKeyboardHints ? keyboardHints[getNoteId(note, octave)] : ''"
           :label-color-class="getLabelColorClass(note, octave, false)"
           :aria-label="getAriaLabel(note, octave)"
           :on-press="handleKeyPress"
@@ -198,6 +201,7 @@ function getAriaLabel(note: string, octave: number): string {
           :disabled="disabled"
           :color-class="getNoteColorClass('C', octave + 1, false)"
           :label-text="labelStyle !== 'none' ? getNoteLabel('C', octave + 1, labelStyle, showOctaveLabels) : ''"
+          :keyboard-hint="showKeyboardHints ? keyboardHints[getNoteId('C', octave + 1)] : ''"
           :label-color-class="getLabelColorClass('C', octave + 1, false)"
           :aria-label="getAriaLabel('C', octave + 1)"
           :on-press="handleKeyPress"
@@ -214,6 +218,7 @@ function getAriaLabel(note: string, octave: number): string {
           :white-key-width="actualWhiteKeyWidth"
           :color-class="getNoteColorClass(note, octave, true)"
           :label-text="labelStyle !== 'none' ? getNoteLabel(note, octave, labelStyle, showOctaveLabels) : ''"
+          :keyboard-hint="showKeyboardHints ? keyboardHints[getNoteId(note, octave)] : ''"
           :label-color-class="getLabelColorClass(note, octave, true)"
           :aria-label="getAriaLabel(note, octave)"
           :get-black-key-position="getBlackKeyPosition"

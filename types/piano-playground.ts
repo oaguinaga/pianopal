@@ -17,6 +17,7 @@ export type PianoPlaygroundProps = {
   colorMode?: ColorMode;
   showOctaveLabels?: boolean;
   highlightedNotes?: string[];
+  showKeyboardHints?: boolean;
 };
 
 // PianoPlayground component emit types

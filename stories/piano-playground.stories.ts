@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from "@storybook/vue3";
+import type { Meta, StoryObj } from "@nuxtjs/storybook";
 
 import PianoPlayground from "~/components/piano-playground.vue";
 
@@ -51,6 +51,10 @@ const meta: Meta<typeof PianoPlayground> = {
       control: "object",
       description: "Array of notes to highlight",
     },
+    showKeyboardHints: {
+      control: "boolean",
+      description: "Show computer keyboard hints inside keys",
+    },
   },
   args: {
     octaveRange: 3,
@@ -61,6 +65,7 @@ const meta: Meta<typeof PianoPlayground> = {
     colorMode: "per-note",
     showOctaveLabels: false,
     highlightedNotes: [],
+    showKeyboardHints: true,
   },
 };
 
@@ -123,6 +128,7 @@ export const WithHighlightedNotes: Story = {
     startOctave: 3,
     showKeyboardGuide: true,
     highlightedNotes: ["C4", "E4", "G4", "C5"],
+    showKeyboardHints: true,
   },
   parameters: {
     docs: {
@@ -214,6 +220,23 @@ export const InteractiveDemo: Story = {
     docs: {
       description: {
         story: "Interactive demo with highlighted C major chord. Click the component, then press 'A' (C4), 'D' (E4), and 'G' (G4) to play the chord!",
+      },
+    },
+  },
+};
+
+// With keyboard hints shown inside keys
+export const WithKeyboardHints: Story = {
+  args: {
+    octaveRange: 3,
+    startOctave: 3,
+    showKeyboardGuide: true,
+    showKeyboardHints: true,
+  },
+  parameters: {
+    docs: {
+      description: {
+        story: "PianoPlayground with computer keyboard hints rendered inside the keys using DaisyUI kbd elements.",
       },
     },
   },

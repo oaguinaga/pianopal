@@ -17,7 +17,9 @@
     "build-storybook": "storybook build",
     "test:visual": "playwright test",
     "test:visual:ui": "playwright test --ui",
-    "test:visual:debug": "playwright test --debug"
+    "test:visual:debug": "playwright test --debug",
+    "test:visual:env": "NODE_ENV=development TURSO_DB_AUTH_TOKEN=dummy TURSO_DB_URL=http://localhost BETTER_AUTH_SECRET=dummy BETTER_AUTH_URL=http://localhost GOOGLE_CLIENT_ID=dummy GOOGLE_CLIENT_SECRET=dummy playwright test",
+    "test:visual:hints": "NODE_ENV=development TURSO_DB_AUTH_TOKEN=dummy TURSO_DB_URL=http://localhost BETTER_AUTH_SECRET=dummy BETTER_AUTH_URL=http://localhost GOOGLE_CLIENT_ID=dummy GOOGLE_CLIENT_SECRET=dummy playwright test tests/piano-playground-hints.spec.ts"
   },
   "dependencies": {
     "@libsql/client": "^0.15.10",

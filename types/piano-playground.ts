@@ -18,6 +18,7 @@ export type PianoPlaygroundProps = {
   showOctaveLabels?: boolean;
   highlightedNotes?: string[];
   showKeyboardHints?: boolean;
+  midiInput?: boolean;
 };
 
 // PianoPlayground component emit types

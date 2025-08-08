@@ -4,6 +4,7 @@ import { computed, ref, watch } from "vue";
 import type { PianoPlaygroundEmits, PianoPlaygroundProps } from "~/types/piano-playground";
 
 import { useKeyboardPiano } from "~/composables/use-keyboard-piano";
+import { useMidi } from "~/composables/use-midi";
 
 // Props with validation and defaults
 const props = withDefaults(defineProps<PianoPlaygroundProps>(), {
@@ -16,6 +17,7 @@ const props = withDefaults(defineProps<PianoPlaygroundProps>(), {
   showOctaveLabels: false,
   highlightedNotes: () => [],
   showKeyboardHints: false,
+  midiInput: false,
 });
 
 // Emits
@@ -52,6 +54,28 @@ const noteIdToKeyMap = computed<Record<string, string>>(() => {
   }
   return map;
 });
+
+// MIDI: manage inputs and merge active notes
+const midiActiveNotes = ref<string[]>([]);
+const {
+  isMidiSupported,
+  midiInputs,
+  selectedMidiInputId,
+  midiError,
+} = useMidi({
+  enabled: computed(() => props.midiInput),
+  onNoteOn: (noteId) => {
+    if (!midiActiveNotes.value.includes(noteId))
+      midiActiveNotes.value.push(noteId);
+    emit("noteOn", noteId);
+  },
+  onNoteOff: (noteId) => {
+    midiActiveNotes.value = midiActiveNotes.value.filter(n => n !== noteId);
+    emit("noteOff", noteId);
+  },
+});
+
+const mergedActiveNotes = computed(() => Array.from(new Set([...activeNotes.value, ...midiActiveNotes.value])));
 </script>
 
 <template>
@@ -73,7 +97,7 @@ const noteIdToKeyMap = computed<Record<string, string>>(() => {
     </div>
     <!-- Visual Piano Component -->
     <VisualPiano
-      :active-notes="activeNotes"
+      :active-notes="mergedActiveNotes"
       :octaves="octaveRange"
       :start-octave="startOctave"
       :highlighted-notes="highlightedNotes"
@@ -161,6 +185,36 @@ const noteIdToKeyMap = computed<Record<string, string>>(() => {
           <div class="flex items-center gap-2">
             <kbd class="kbd">U</kbd><span class="text-sm">{{ visibleKeyboardMapping.u }}</span>
           </div>
+        </div>
+      </div>
+
+      <!-- MIDI inputs -->
+      <div class="mt-6">
+        <h4 class="font-medium mb-2">
+          MIDI Input
+        </h4>
+        <div v-if="!isMidiSupported" class="text-sm text-warning">
+          MIDI not supported in this browser.
+        </div>
+        <div v-else>
+          <div v-if="midiInputs.length === 0" class="text-sm opacity-70">
+            No MIDI devices detected.
+          </div>
+          <div v-else class="flex items-center gap-2">
+            <label class="text-sm">Device:</label>
+            <select v-model="selectedMidiInputId" class="select select-bordered select-sm">
+              <option
+                v-for="i in midiInputs"
+                :key="i.id"
+                :value="i.id"
+              >
+                {{ i.name }}
+              </option>
+            </select>
+          </div>
+          <p v-if="midiError" class="text-error text-xs mt-1">
+            {{ midiError }}
+          </p>
         </div>
       </div>
     </div>

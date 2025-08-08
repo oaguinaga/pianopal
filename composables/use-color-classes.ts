@@ -6,6 +6,12 @@ import { BLACK_KEY_COLOR_MAP, NOTE_COLOR_MAP } from "~/constants/piano";
 
 import { useNoteHelpers } from "./use-note-helpers";
 
+/**
+ * useColorClasses
+ *
+ * Color selection composable for piano keys.
+ * Decides Tailwind classes based on highlight/active states and color mode.
+ */
 export function useColorClasses(
   highlightedNotes: Ref<string[]>,
   activeNotes: Ref<string[]>,
@@ -19,7 +25,7 @@ export function useColorClasses(
     internalActiveNotes,
   );
 
-  // Helper function to get white key color classes
+  // White keys: mono/per-note branches
   function getWhiteKeyColorClasses(note: WhiteNote, octave: number): string {
     const isNoteActive = isActive(note, octave);
     const isNoteHighlighted = isHighlighted(note, octave);
@@ -48,7 +54,7 @@ export function useColorClasses(
     return result;
   }
 
-  // Helper function to get black key color classes
+  // Black keys: mono/per-note with enharmonic-aware selection
   function getBlackKeyColorClasses(note: BlackNote, octave: number): string {
     const isNoteActive = isActive(note, octave);
     const isNoteHighlighted = isHighlighted(note, octave);

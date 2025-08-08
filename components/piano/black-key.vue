@@ -58,13 +58,15 @@ const _props = withDefaults(defineProps<{
     @keyup.enter.exact.prevent="onRelease(note, octave)"
   >
     <div class="pointer-events-none select-none flex flex-col items-center gap-0.5">
-      <KeyboardHint :hint="keyboardHint" />
+      <KeyboardHint :hint="keyboardHint" size="sm" />
       <span
         v-if="labelText"
         class="text-xs font-medium"
         :class="labelColorClass"
         aria-hidden="true"
-      >{{ labelText }}</span>
+      >
+        {{ labelText }}
+      </span>
     </div>
   </button>
 </template>

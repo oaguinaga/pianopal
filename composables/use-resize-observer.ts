@@ -2,6 +2,12 @@ import type { Ref } from "vue";
 
 import { nextTick, onMounted, onUnmounted } from "vue";
 
+/**
+ * useResizeObserver
+ *
+ * Wrapper around ResizeObserver with SSR guard.
+ * Invokes the provided callback on nextTick after mount and on size changes.
+ */
 export function useResizeObserver(
   containerRef: Ref<HTMLElement | undefined>,
   callback: () => void,

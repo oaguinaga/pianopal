@@ -37,6 +37,12 @@ function midiNoteToNoteId(midiNote: number): string {
   return `${name}${octave}`;
 }
 
+/**
+ * useMidi
+ * - Detects Web MIDI support and requests access
+ * - Lists available input devices and tracks selection
+ * - Converts MIDI messages into noteOn/noteOff callbacks
+ */
 export function useMidi(config: MidiConfig) {
   const isMidiSupported = ref<boolean>(false);
   const access = ref<MidiAccess | null>(null);
@@ -113,12 +119,19 @@ export function useMidi(config: MidiConfig) {
       const [status, note, velocity] = evt.data;
       const type = status & MIDI_STATUS_MASK;
 
-      if (type === MIDI_NOTE_ON && velocity > 0) {
-        const id = midiNoteToNoteId(note);
-        config.onNoteOn?.(id);
+      if (type === MIDI_NOTE_ON) {
+        if (velocity > 0) {
+          const id = midiNoteToNoteId(note);
+          config.onNoteOn?.(id);
+        }
+        else {
+          const id = midiNoteToNoteId(note);
+          config.onNoteOff?.(id);
+        }
+        return;
       }
 
-      else if (type === MIDI_NOTE_OFF || (type === MIDI_NOTE_ON && velocity === 0)) {
+      if (type === MIDI_NOTE_OFF) {
         const id = midiNoteToNoteId(note);
         config.onNoteOff?.(id);
       }

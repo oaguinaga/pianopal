@@ -12,6 +12,12 @@ import {
   KEY_GAP,
 } from "~/constants/piano";
 
+/**
+ * useKeyboardMeasurement
+ *
+ * Measures white key width from DOM and derives black key positions.
+ * Provides a fallback calculation when measurements are unavailable.
+ */
 export function useKeyboardMeasurement(containerRef: Ref<HTMLElement | undefined>) {
   // Actual white key width (measured from DOM)
   const actualWhiteKeyWidth = ref(DEFAULT_WHITE_KEY_WIDTH);
@@ -19,7 +25,7 @@ export function useKeyboardMeasurement(containerRef: Ref<HTMLElement | undefined
   // Store measured black key positions for DOM-based calculations
   const blackKeyPositions = ref<Record<string, BlackKeyPosition>>({});
 
-  // Helper function for fallback positioning calculation
+  // Fallback positioning: center between adjacent white keys
   function calculateFallbackPosition(note: string, actualWidth: number): BlackKeyPosition {
     const position = BLACK_KEY_POSITION_MAP[note as keyof typeof BLACK_KEY_POSITION_MAP];
     if (position === undefined) {
@@ -36,7 +42,7 @@ export function useKeyboardMeasurement(containerRef: Ref<HTMLElement | undefined
     };
   }
 
-  // Get black key position from stored measurements or fallback calculation
+  // Public: prefer measured positions; fallback to calculated
   function getBlackKeyPosition(note: string, actualWidth: number): BlackKeyPosition {
     // Use stored position if available
     const storedPosition = blackKeyPositions.value[note];

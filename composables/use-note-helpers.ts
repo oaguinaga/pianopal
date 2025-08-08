@@ -2,15 +2,13 @@ import type { Ref } from "vue";
 
 import type { LabelStyle } from "~/types/piano";
 
-// Enharmonic equivalents mapping (flat to sharp)
-const enharmonicMap: Record<string, string> = {
-  Db: "C#",
-  Eb: "D#",
-  Gb: "F#",
-  Ab: "G#",
-  Bb: "A#",
-} as const;
+import { ACCIDENTAL_FLAT, ACCIDENTAL_SHARP, DO_RE_MI_MAP, ENHARMONIC_FLAT_TO_SHARP, NOTE_NAME_REGEX } from "~/constants/piano";
 
+/**
+ * useNoteHelpers
+ *
+ * Utilities for note identity, enharmonic equivalents, and label formatting.
+ */
 export function useNoteHelpers(
   highlightedNotes: Ref<string[]>,
   activeNotes: Ref<string[]>,
@@ -27,7 +25,7 @@ export function useNoteHelpers(
     const equivalents = [noteId];
 
     // Check if this note has an enharmonic equivalent
-    for (const [flat, sharp] of Object.entries(enharmonicMap)) {
+    for (const [flat, sharp] of Object.entries(ENHARMONIC_FLAT_TO_SHARP)) {
       if (note === flat) {
         equivalents.push(getNoteId(sharp, octave));
       }
@@ -55,7 +53,7 @@ export function useNoteHelpers(
     return result;
   }
 
-  // Helper function to determine display note (flat vs sharp preference)
+  // Pick a display note symbol (prefers flats when present in input sets)
   function getDisplayNote(note: string, octave: number): string {
     if (!note.includes("#"))
       return note;
@@ -70,7 +68,7 @@ export function useNoteHelpers(
 
     for (const equiv of equivalents) {
       if (allRelevantNotes.includes(equiv)) {
-        const [equivNote] = equiv.match(/[A-G][#b]?/) || [];
+        const [equivNote] = equiv.match(NOTE_NAME_REGEX) || [];
         if (equivNote && equivNote.includes("b")) {
           return equivNote; // Use the flat version
         }
@@ -80,29 +78,18 @@ export function useNoteHelpers(
     return note;
   }
 
-  // Helper function to format do-re-mi labels
+  // Map letter names to do-re-mi
   function formatDoReMiLabel(note: string): string {
-    const doReMiMap: Record<string, string> = {
-      "C": "Do",
-      "C#": "Do#",
-      "Db": "Re♭",
-      "D": "Re",
-      "D#": "Re#",
-      "Eb": "Mi♭",
-      "E": "Mi",
-      "F": "Fa",
-      "F#": "Fa#",
-      "Gb": "Sol♭",
-      "G": "Sol",
-      "G#": "Sol#",
-      "Ab": "La♭",
-      "A": "La",
-      "A#": "La#",
-      "Bb": "Si♭",
-      "B": "Si",
-    } as const;
+    return DO_RE_MI_MAP[note as keyof typeof DO_RE_MI_MAP] || note;
+  }
 
-    return doReMiMap[note] || note;
+  // Map letter labels to use Unicode accidentals (C# → C♯, Db → D♭)
+  function formatLetterLabelWithAccidental(note: string): string {
+    if (note.includes("#"))
+      return note.replace("#", ACCIDENTAL_SHARP);
+    if (note.endsWith("b"))
+      return note.replace("b", ACCIDENTAL_FLAT);
+    return note;
   }
 
   // Helper function to add octave if needed
@@ -127,8 +114,9 @@ export function useNoteHelpers(
       return addOctaveIfNeeded(label, octave, showOctaveLabels);
     }
 
-    // Default to letter notation
-    return addOctaveIfNeeded(displayNote, octave, showOctaveLabels);
+    // Default to letter notation (with Unicode accidentals)
+    const letter = formatLetterLabelWithAccidental(displayNote);
+    return addOctaveIfNeeded(letter, octave, showOctaveLabels);
   }
 
   return {

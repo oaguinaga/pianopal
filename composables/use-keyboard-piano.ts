@@ -1,8 +1,25 @@
+/**
+ * useKeyboardPiano
+ *
+ * Keyboard-to-piano input composable that:
+ * - Maps QWERTY keys to piano notes (white/black)
+ * - Tracks selected octave (1..N via number keys)
+ * - Emits noteOn/noteOff through the provided config callbacks
+ * - Handles focus/blur and interactive element guards
+ *
+ * Returns: { activeNotes, selectedOctaveIndex, selectedOctave, visibleKeyboardMapping, isKeyboardBlocked }
+ */
 import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 
-import type { KeyboardKeyBlack, KeyboardKeyWhite, KeyboardToPianoBlackMap, KeyboardToPianoWhiteMap, UseKeyboardPianoConfig } from "~/types/piano";
+import type { KeyboardKeyBlack, KeyboardKeyWhite, UseKeyboardPianoConfig } from "~/types/piano";
+
+import { KEYBOARD_TO_PIANO_BLACK_MAP, KEYBOARD_TO_PIANO_WHITE_MAP } from "~/constants/piano";
 
 export function useKeyboardPiano(config: UseKeyboardPianoConfig) {
+  // Local boundaries for octave math when mapping keys → notes
+  const MIN_OCTAVE_INDEX = 0;
+  const MAX_OCTAVE_INDEX = 8;
+
   const activeNotes = ref<string[]>([]);
   const pressedKeys = ref<Set<string>>(new Set());
   const isKeyboardBlocked = ref(false);
@@ -25,38 +42,29 @@ export function useKeyboardPiano(config: UseKeyboardPianoConfig) {
     selectedOctaveIndex.value = Math.min(selectedOctaveIndex.value, maxIndex);
   }, { immediate: true });
 
-  // Fixed keyboard-to-note mapping (relative to an octave)
-  const KEYBOARD_TO_PIANO_WHITE_MAP: KeyboardToPianoWhiteMap = {
-    a: { note: "C" },
-    s: { note: "D" },
-    d: { note: "E" },
-    f: { note: "F" },
-    g: { note: "G" },
-    h: { note: "A" },
-    j: { note: "B" },
-    k: { note: "C", deltaOctave: 1 },
-  };
+  // Mappings are imported from constants for readability/testability
 
-  const KEYBOARD_TO_PIANO_BLACK_MAP: KeyboardToPianoBlackMap = {
-    w: { note: "C#" },
-    e: { note: "D#" },
-    t: { note: "F#" },
-    y: { note: "G#" },
-    u: { note: "A#" },
-  };
+  // Helpers
+  function isNumberKey(key: string): boolean {
+    return /^[1-9]$/.test(key);
+  }
+
+  function withinOctaveBounds(octave: number): boolean {
+    return octave >= MIN_OCTAVE_INDEX && octave <= MAX_OCTAVE_INDEX;
+  }
 
   function getNoteForKey(key: string, baseOctave: number): string | undefined {
     const lower = key.toLowerCase() as KeyboardKeyWhite | KeyboardKeyBlack | string;
     if (lower in KEYBOARD_TO_PIANO_WHITE_MAP) {
       const { note, deltaOctave = 0 } = KEYBOARD_TO_PIANO_WHITE_MAP[lower as KeyboardKeyWhite];
       const octave = baseOctave + deltaOctave;
-      if (octave < 0 || octave > 8)
+      if (!withinOctaveBounds(octave))
         return undefined;
       return `${note}${octave}`;
     }
     if (lower in KEYBOARD_TO_PIANO_BLACK_MAP) {
       const { note } = KEYBOARD_TO_PIANO_BLACK_MAP[lower as KeyboardKeyBlack];
-      if (baseOctave < 0 || baseOctave > 8)
+      if (!withinOctaveBounds(baseOctave))
         return undefined;
       return `${note}${baseOctave}`;
     }
@@ -109,13 +117,9 @@ export function useKeyboardPiano(config: UseKeyboardPianoConfig) {
     const key = event.key.toLowerCase();
 
     // Octave selection via number keys (1..octaveRange)
-    if (/^[1-9]$/.test(key)) {
-      const requestedIndex = Number.parseInt(key, 10) - 1;
-      if (requestedIndex >= 0 && requestedIndex < config.octaveRange.value) {
-        selectedOctaveIndex.value = requestedIndex;
-        event.preventDefault();
-        return;
-      }
+    if (handleOctaveSelection(key)) {
+      event.preventDefault();
+      return;
     }
 
     const note = getNoteForKey(key, selectedOctave.value);
@@ -139,7 +143,7 @@ export function useKeyboardPiano(config: UseKeyboardPianoConfig) {
     if (isInteractiveTarget(event.target))
       return;
     const key = event.key.toLowerCase();
-    if (/^[1-9]$/.test(key))
+    if (isNumberKey(key))
       return;
     const note = getNoteForKey(key, selectedOctave.value);
     if (note) {
@@ -147,6 +151,17 @@ export function useKeyboardPiano(config: UseKeyboardPianoConfig) {
       activeNotes.value = activeNotes.value.filter(n => n !== note);
       config.emitNoteOff(note);
     }
+  }
+
+  function handleOctaveSelection(key: string): boolean {
+    if (!isNumberKey(key))
+      return false;
+    const requestedIndex = Number.parseInt(key, 10) - 1;
+    if (requestedIndex >= 0 && requestedIndex < config.octaveRange.value) {
+      selectedOctaveIndex.value = requestedIndex;
+      return true;
+    }
+    return false;
   }
 
   function cleanup() {

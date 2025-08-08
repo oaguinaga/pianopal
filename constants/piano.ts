@@ -5,7 +5,7 @@
  * Uses UPPERCASE_SNAKE_CASE convention for immutable constants.
  */
 
-import type { LabelStyle } from "~/types/piano";
+import type { KeyboardToPianoBlackMap, KeyboardToPianoWhiteMap, LabelStyle } from "~/types/piano";
 
 // Basic note type definitions (to avoid circular imports)
 export type WhiteNote = "C" | "D" | "E" | "F" | "G" | "A" | "B";
@@ -144,3 +144,58 @@ export const NOTE_NAMES = [
   "A#",
   "B",
 ] as const;
+
+export const NOTE_NAME_REGEX = /[A-G][#b]?/;
+
+export const ENHARMONIC_FLAT_TO_SHARP = {
+  Db: "C#",
+  Eb: "D#",
+  Gb: "F#",
+  Ab: "G#",
+  Bb: "A#",
+} as const;
+
+// QWERTY → Piano mappings used by keyboard input
+export const KEYBOARD_TO_PIANO_WHITE_MAP: KeyboardToPianoWhiteMap = {
+  a: { note: "C" },
+  s: { note: "D" },
+  d: { note: "E" },
+  f: { note: "F" },
+  g: { note: "G" },
+  h: { note: "A" },
+  j: { note: "B" },
+  k: { note: "C", deltaOctave: 1 },
+};
+
+export const KEYBOARD_TO_PIANO_BLACK_MAP: KeyboardToPianoBlackMap = {
+  w: { note: "C#" },
+  e: { note: "D#" },
+  t: { note: "F#" },
+  y: { note: "G#" },
+  u: { note: "A#" },
+};
+
+// Unicode accidental characters
+export const ACCIDENTAL_SHARP = "♯";
+export const ACCIDENTAL_FLAT = "♭";
+
+// Do-Re-Mi mapping (with proper Unicode accidentals)
+export const DO_RE_MI_MAP = {
+  "C": "Do",
+  "C#": `Do${ACCIDENTAL_SHARP}`,
+  "Db": `Re${ACCIDENTAL_FLAT}`,
+  "D": "Re",
+  "D#": `Re${ACCIDENTAL_SHARP}`,
+  "Eb": `Mi${ACCIDENTAL_FLAT}`,
+  "E": "Mi",
+  "F": "Fa",
+  "F#": `Fa${ACCIDENTAL_SHARP}`,
+  "Gb": `Sol${ACCIDENTAL_FLAT}`,
+  "G": "Sol",
+  "G#": `Sol${ACCIDENTAL_SHARP}`,
+  "Ab": `La${ACCIDENTAL_FLAT}`,
+  "A": "La",
+  "A#": `La${ACCIDENTAL_SHARP}`,
+  "Bb": `Si${ACCIDENTAL_FLAT}`,
+  "B": "Si",
+} as const;

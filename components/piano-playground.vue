@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
 
 import type { PianoPlaygroundEmits, PianoPlaygroundProps } from "~/types/piano-playground";
 
@@ -15,6 +15,7 @@ const props = withDefaults(defineProps<PianoPlaygroundProps>(), {
   colorMode: "per-note",
   showOctaveLabels: false,
   highlightedNotes: () => [],
+  showKeyboardHints: false,
 });
 
 // Emits
@@ -41,6 +42,16 @@ watch(selectedOctaveIndex, (idx) => {
 
 // Expose selected octave if parent needs to read it
 defineExpose({ selectedOctaveIndex });
+
+// Build noteId -> key label map for keyboard hints
+const noteIdToKeyMap = computed<Record<string, string>>(() => {
+  const map: Record<string, string> = {};
+  const current = visibleKeyboardMapping.value;
+  for (const [key, noteId] of Object.entries(current)) {
+    map[noteId] = key.toUpperCase();
+  }
+  return map;
+});
 </script>
 
 <template>
@@ -71,6 +82,8 @@ defineExpose({ selectedOctaveIndex });
       :color-mode="colorMode"
       :input-enabled="true"
       :show-octave-labels="showOctaveLabels"
+      :show-keyboard-hints="showKeyboardHints"
+      :keyboard-hints="noteIdToKeyMap"
     />
 
     <!-- Keyboard Guide -->

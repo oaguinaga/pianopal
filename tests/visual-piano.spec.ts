@@ -61,4 +61,21 @@ test.describe("VisualPiano Component - Core Functionality", () => {
 
     await expect(iframe.locator(".visual-piano")).toHaveScreenshot("mono-color-verification.png");
   });
+
+  test("should show keyboard hints when enabled", async ({ page }) => {
+    await page.goto("/?path=/story/components-visualpiano--default");
+    await page.waitForLoadState("networkidle");
+
+    const iframe = page.frameLocator("iframe[title=\"storybook-preview-iframe\"]");
+    await iframe.locator(".visual-piano").waitFor({ timeout: 10000 });
+
+    // Toggle args in story via URL params: showKeyboardHints and keyboardHints
+    await page.goto("/?path=/story/components-visualpiano--default&args=showKeyboardHints:true;keyboardHints:C1:A,D1:S");
+    await page.waitForLoadState("networkidle");
+    const iframe2 = page.frameLocator("iframe[title=\"storybook-preview-iframe\"]");
+    await iframe2.locator(".visual-piano").waitFor({ timeout: 10000 });
+
+    // Expect at least one kbd hint visible somewhere
+    await expect(iframe2.locator(".visual-piano kbd").first()).toBeVisible();
+  });
 });

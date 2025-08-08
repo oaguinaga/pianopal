@@ -11,6 +11,7 @@ const testStartOctave = ref(3);
 const testLabelStyle = ref<LabelStyle>("letter");
 const testColorMode = ref<ColorMode>("per-note");
 const testShowOctaveLabels = ref(false);
+const testShowKeyboardHints = ref(true);
 const testShowKeyboardGuide = ref(true);
 
 const selectedOctaveIndexFromChild = ref<number>(Math.floor((testOctaveRange.value - 1) / 2));
@@ -185,6 +186,17 @@ function handleNoteOff(noteId: string) {
                   >
                 </label>
               </div>
+              <div class="form-control">
+                <label class="label cursor-pointer">
+                  <span class="label-text">Show Keyboard Hints</span>
+                  <input
+                    v-model="testShowKeyboardHints"
+                    type="checkbox"
+                    class="checkbox"
+                    @change="blurTargetOrActiveElementOnChange"
+                  >
+                </label>
+              </div>
             </div>
           </div>
 
@@ -206,7 +218,9 @@ function handleNoteOff(noteId: string) {
               :color-mode="testColorMode"
               :show-octave-labels="testShowOctaveLabels"
               :show-keyboard-guide="testShowKeyboardGuide"
+              :show-keyboard-hints="testShowKeyboardHints"
               :highlighted-notes="highlightedNotes"
+
               @note-on="handleNoteOn"
               @note-off="handleNoteOff"
               @selected-octave-change="onSelectedOctaveChange"

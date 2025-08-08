@@ -60,6 +60,14 @@ const meta: Meta<typeof VisualPiano> = {
       control: "boolean",
       description: "Whether to show octave numbers in labels",
     },
+    showKeyboardHints: {
+      control: "boolean",
+      description: "Show computer keyboard hints inside keys",
+    },
+    keyboardHints: {
+      control: "object",
+      description: "Map of noteId to keyboard key (e.g., { C1: 'A', D1: 'S' })",
+    },
   },
   args: {
     octaves: 2,
@@ -72,6 +80,8 @@ const meta: Meta<typeof VisualPiano> = {
     disabled: false,
     inputEnabled: true,
     showOctaveLabels: false,
+    showKeyboardHints: false,
+    keyboardHints: {},
   },
 };
 

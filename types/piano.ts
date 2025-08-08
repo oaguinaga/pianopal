@@ -34,6 +34,8 @@ export type VisualPianoProps = {
   colorMode?: ColorMode;
   inputEnabled?: boolean;
   showOctaveLabels?: boolean;
+  showKeyboardHints?: boolean;
+  keyboardHints?: Record<string, string>; // noteId (e.g., C4) -> key (e.g., 'A')
 };
 
 export type VisualPianoEmits = {

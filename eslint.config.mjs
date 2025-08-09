@@ -30,6 +30,7 @@ export default withNuxt(
           },
         }],
         "ts/no-redeclare": "off",
+        "vue/custom-event-name-casing": "off",
         "ts/consistent-type-definitions": ["error", "type"],
         "no-console": ["warn"],
         "antfu/no-top-level-await": ["off"],

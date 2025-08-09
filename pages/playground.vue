@@ -3,17 +3,17 @@ import type { ColorMode, LabelStyle } from "~/types/piano";
 
 import { blurTargetOrActiveElementOnChange } from "~/utils/dom";
 // Test data for piano component
-const activeNotes = ref<string[]>([]); // Active notes from keyboard input
+const activeNotes = ref<string[]>([]); // Active notes from keyboard/MIDI input
 
 // Test configuration options
-const testOctaveRange = ref(3);
+const testOctaveRange = ref(2);
 const testStartOctave = ref(3);
 const testLabelStyle = ref<LabelStyle>("letter");
 const testColorMode = ref<ColorMode>("per-note");
 const testShowOctaveLabels = ref(false);
 const testShowKeyboardHints = ref(true);
 const testShowKeyboardGuide = ref(true);
-const testEnableMidi = ref(false);
+const testEnableMidi = ref(true);
 
 const selectedOctaveIndexFromChild = ref<number>(Math.floor((testOctaveRange.value - 1) / 2));
 
@@ -39,17 +39,54 @@ const highlightedNotes = computed(() => {
 }); // Highlight notes using the currently selected octave
 // removed local handleConfigChange in favor of reusable util
 
-function handleNoteOn(noteId: string) {
-  if (!activeNotes.value.includes(noteId)) {
+// Audio synth integration (declare early to satisfy linter order)
+const isClient = typeof window !== "undefined";
+const audio = isClient ? (await import("~/composables/use-audio-synth")).useAudioSynth() : null;
+const audioEnabled = computed(() => Boolean(audio?.audioInitialized.value));
+
+async function handleNoteOn(noteId: string, _source?: "keyboard" | "midi" | "ui") {
+  if (!activeNotes.value.includes(noteId))
     activeNotes.value.push(noteId);
+  if (audio) {
+    // Auto-enable for any source (keyboard, UI, or MIDI). If the browser blocks this for MIDI,
+    // the call will simply have no effect and the user can click Enable Audio.
+    if (!audio.audioInitialized.value)
+      await enableAudio();
+    await audio.noteOn(noteId);
   }
-  console.warn("Note on:", noteId);
 }
 
-function handleNoteOff(noteId: string) {
+async function handleNoteOff(noteId: string) {
   activeNotes.value = activeNotes.value.filter(n => n !== noteId);
-  console.warn("Note off:", noteId);
+  if (audio)
+    await audio.noteOff(noteId);
 }
+
+async function enableAudio() {
+  if (!audio)
+    return;
+  await audio.startAudioContextIfNeeded();
+  if (!audio.audioInitialized.value)
+    await audio.initAudioChain();
+  // Play a short test beep to confirm audio is active
+  try {
+    await audio.testBeep(0.2, 440);
+  }
+  catch {}
+}
+
+async function playDebugBeep() {
+  if (!audio)
+    return;
+  await audio.startAudioContextIfNeeded();
+  try {
+    await audio.testBeep(0.25, 660);
+  }
+  catch {}
+}
+
+// Note playback is triggered directly in handleNoteOn/Off to ensure
+// we can gate Tone.start() behind a user gesture via enableAudio().
 </script>
 
 <template>
@@ -210,6 +247,35 @@ function handleNoteOff(noteId: string) {
                 </label>
               </div>
             </div>
+          </div>
+
+          <!-- Sound Panel placed between piano and configuration -->
+          <div class="mt-6">
+            <ClientOnly>
+              <sound-control-panel
+                v-if="audio"
+                :is-muted="audio.isMuted.value"
+                :volume-db="audio.volumeDb.value"
+                :reverb-enabled="audio.reverbEnabled.value"
+                :room-size="audio.reverbRoomSize.value"
+                :low-latency="audio.lowLatency.value"
+                :instrument="audio.instrument.value"
+                :enabled="audioEnabled"
+                @enable-audio="enableAudio"
+                @play-test-beep="playDebugBeep"
+                @update:is-muted="audio.setMuted ? audio.setMuted($event) : ($event ? (audio.isMuted.value ? undefined : audio.toggleMute()) : (audio.isMuted.value ? audio.toggleMute() : undefined))"
+                @update:volume-db="audio.setVolume($event)"
+                @update:reverb-enabled="audio.setReverbEnabled($event)"
+                @update:room-size="audio.setReverbRoomSize($event)"
+                @update:low-latency="audio.setLowLatency($event)"
+                @update:instrument="audio.setInstrument($event)"
+              />
+              <div class="mt-3">
+                <button class="btn btn-secondary btn-sm" @click="playDebugBeep">
+                  Play Test Beep
+                </button>
+              </div>
+            </ClientOnly>
           </div>
 
           <!-- Interactive Piano -->

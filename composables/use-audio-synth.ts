@@ -1,19 +1,34 @@
 import { onUnmounted, ref } from "vue";
 
+import { useClientModule } from "~/composables/use-client-module";
+import { PIANO_SALAMANDER_MAP, SALAMANDER_BASE_URL } from "~/constants/piano";
+
+/**
+ * Identifier for available instruments.
+ * - "piano" uses a Sampler with Salamander samples
+ * - others are PolySynth wrappers with gentle defaults
+ */
 type InstrumentId = "piano" | "polysynth" | "amsynth" | "fmsynth" | "membranesynth";
 
 export function useAudioSynth() {
   const isClient = typeof window !== "undefined" && typeof document !== "undefined";
 
-  // Runtime Tone import holder to keep SSR safe
+  // SSR-safe Tone loader
   const ToneRef = ref<any>(null);
+  const toneLoader = useClientModule<any>();
 
   // State
   const audioInitialized = ref(false);
   const isMuted = ref(false);
-  const volumeDb = ref(-10); // headroom for stacked voices
+  // Fixed configuration constants (UPPER_SNAKE_CASE)
+  const DEFAULT_VOLUME_DB = -10; // headroom for stacked voices
+  const DEFAULT_REVERB_ROOM_SIZE = 0.8;
+  const LOOKAHEAD_LOW = 0.005 as const;
+  const LOOKAHEAD_NORMAL = 0.05 as const;
+
+  const volumeDb = ref(DEFAULT_VOLUME_DB);
   const reverbEnabled = ref(false);
-  const reverbRoomSize = ref(0.8);
+  const reverbRoomSize = ref(DEFAULT_REVERB_ROOM_SIZE);
   const lowLatency = ref(false);
   const instrument = ref<InstrumentId>("piano");
 
@@ -23,16 +38,20 @@ export function useAudioSynth() {
   let reverb: any | null = null;
   let blurHandler: (() => void) | null = null;
 
+  /**
+   * Dynamically import Tone on the client and memoize it in ToneRef.
+   * Prevents SSR crashes and defers heavy code until audio is needed.
+   */
   async function ensureToneLoaded() {
     if (!isClient)
       return;
     if (!ToneRef.value) {
-      const mod = await import("tone");
-      // Support both ESM namespace and default export styles
-      ToneRef.value = (mod as any).default ?? mod;
+      const mod = await toneLoader.load(() => import("tone"));
+      ToneRef.value = mod;
     }
   }
 
+  /** Ensure the WebAudio context is running (call from a user gesture). */
   async function startAudioContextIfNeeded() {
     if (!isClient)
       return;
@@ -43,58 +62,26 @@ export function useAudioSynth() {
     await ToneRef.value.start();
   }
 
-  async function testBeep(durationSec = 0.2, freq = 440) {
-    if (!isClient)
-      return;
-    await ensureToneLoaded();
-    const Tone = ToneRef.value;
-    const osc = new Tone.Oscillator({ frequency: freq, type: "sine" }).toDestination();
-    osc.start();
-    await new Promise(resolve => setTimeout(resolve, durationSec * 1000));
-    osc.stop();
-    osc.disconnect();
-  }
-
-  function createSynthById(id: InstrumentId) {
-    const Tone = ToneRef.value;
+  /**
+   * Create the active instrument instance.
+   * The optional config param allows injecting custom instruments for tests or extension.
+   */
+  function createSynthById(
+    id: InstrumentId,
+    config?: {
+      Tone?: any;
+      pianoSamplerUrls?: Record<string, string>;
+      pianoBaseUrl?: string;
+    },
+  ) {
+    const Tone = config?.Tone ?? ToneRef.value;
     switch (id) {
       case "piano": {
         // Acoustic piano using Salamander samples hosted by Tone.js
         // Sparse multisample map for reasonable load time
         const sampler = new Tone.Sampler({
-          urls: {
-            "A0": "A0.mp3",
-            "C1": "C1.mp3",
-            "D#1": "Ds1.mp3",
-            "F#1": "Fs1.mp3",
-            "A1": "A1.mp3",
-            "C2": "C2.mp3",
-            "D#2": "Ds2.mp3",
-            "F#2": "Fs2.mp3",
-            "A2": "A2.mp3",
-            "C3": "C3.mp3",
-            "D#3": "Ds3.mp3",
-            "F#3": "Fs3.mp3",
-            "A3": "A3.mp3",
-            "C4": "C4.mp3",
-            "D#4": "Ds4.mp3",
-            "F#4": "Fs4.mp3",
-            "A4": "A4.mp3",
-            "C5": "C5.mp3",
-            "D#5": "Ds5.mp3",
-            "F#5": "Fs5.mp3",
-            "A5": "A5.mp3",
-            "C6": "C6.mp3",
-            "D#6": "Ds6.mp3",
-            "F#6": "Fs6.mp3",
-            "A6": "A6.mp3",
-            "C7": "C7.mp3",
-            "D#7": "Ds7.mp3",
-            "F#7": "Fs7.mp3",
-            "A7": "A7.mp3",
-            "C8": "C8.mp3",
-          },
-          baseUrl: "https://tonejs.github.io/audio/salamander/",
+          urls: config?.pianoSamplerUrls ?? PIANO_SALAMANDER_MAP,
+          baseUrl: config?.pianoBaseUrl ?? SALAMANDER_BASE_URL,
           release: 1,
         });
         return sampler;
@@ -114,6 +101,11 @@ export function useAudioSynth() {
     }
   }
 
+  /**
+   * Create audio nodes and connect the chain:
+   *  synth -> Volume (dry) -> Destination
+   *                \-> Freeverb (wet) -> Destination
+   */
   async function initAudioChain() {
     if (!isClient)
       return;
@@ -146,10 +138,7 @@ export function useAudioSynth() {
     // Safety: release all on window blur to prevent hung notes
     if (!blurHandler) {
       blurHandler = () => {
-        try {
-          (synth as any)?.releaseAll?.();
-        }
-        catch {}
+        releaseAll();
       };
       if (typeof window !== "undefined")
         window.addEventListener("blur", blurHandler);
@@ -187,9 +176,7 @@ export function useAudioSynth() {
     if (!isClient)
       return;
     await ensureToneLoaded();
-    if (!audioInitialized.value)
-      return;
-    if (!synth)
+    if (!audioInitialized.value || !synth)
       return;
     // Ensure context is running; do not block on sample load to avoid missed plays
     try {
@@ -213,7 +200,7 @@ export function useAudioSynth() {
     if (!isClient)
       return;
     await ensureToneLoaded();
-    if (!audioInitialized.value)
+    if (!audioInitialized.value || !synth)
       return;
     if (!synth)
       return;
@@ -236,19 +223,38 @@ export function useAudioSynth() {
     if (!ToneRef.value)
       return;
     // Recreate synth maintaining chain
-    const wasInitialized = audioInitialized.value;
-    if (wasInitialized) {
+    if (audioInitialized.value) {
       const prevVol = volNode;
       synth?.disconnect();
       synth?.dispose?.();
       synth = createSynthById(id);
-      const maybeConnect = async () => {
-        if (synth && "loaded" in synth && typeof (synth as any).loaded?.then === "function") {
+      /**
+       * Reconnect the newly created synth to the existing Volume/FX chain.
+       * Some instruments (e.g., Tone.Sampler) expose a `loaded` Promise that
+       * resolves when remote assets (samples) have finished loading. We await
+       * that if present to avoid connecting/playing before assets are ready.
+       *
+       * The guard below looks verbose for safety and DX:
+       * - `"loaded" in synth` ensures the property exists before access
+       * - `(synth as any).loaded?.then` checks that it is Promise-like
+       */
+      /** Wait for the synth to load its samples (if applicable). */
+      async function waitForSynthLoaded(current: any) {
+        const isPromiseLike
+          = current && "loaded" in current && typeof (current as any).loaded?.then === "function";
+        if (isPromiseLike) {
           try {
-            await (synth as any).loaded;
+            await (current as any).loaded;
           }
-          catch {}
+          catch (err) {
+            if (import.meta.dev)
+              console.error("Synth load failed:", err);
+          }
         }
+      }
+
+      const maybeConnect = async () => {
+        await waitForSynthLoaded(synth);
         if (prevVol)
           synth.connect(prevVol);
       };
@@ -287,6 +293,7 @@ export function useAudioSynth() {
       reverb.roomSize = size;
   }
 
+  /** Adjust scheduling lookAhead for perceived latency. */
   function setLowLatency(enabled: boolean) {
     lowLatency.value = enabled;
     const Tone = ToneRef.value;
@@ -295,7 +302,7 @@ export function useAudioSynth() {
     // Adjust scheduling lookAhead instead of trying to mutate context.latencyHint (getter-only)
     const transport = typeof Tone.getTransport === "function" ? Tone.getTransport() : Tone.Transport;
     if (transport) {
-      transport.lookAhead = enabled ? 0.005 : 0.05;
+      transport.lookAhead = enabled ? LOOKAHEAD_LOW : LOOKAHEAD_NORMAL;
     }
   }
 
@@ -321,7 +328,6 @@ export function useAudioSynth() {
     startAudioContextIfNeeded,
     initAudioChain,
     disposeChain,
-    testBeep,
     releaseAll,
     // controls
     noteOn,

@@ -17,7 +17,6 @@ const emit = defineEmits<{
   (e: "update:lowLatency", val: boolean): void;
   (e: "update:instrument", val: "piano" | "polysynth" | "amsynth" | "fmsynth" | "membranesynth"): void;
   (e: "enable-audio"): void;
-  (e: "play-test-beep"): void;
 }>();
 
 function onMuteToggle() {
@@ -149,13 +148,6 @@ function onInstrument(e: Event) {
             @change="onLatencyToggle"
           >
         </label>
-      </div>
-
-      <!-- Debug / QA -->
-      <div class="form-control">
-        <button class="btn btn-outline btn-sm" @click="$emit('play-test-beep')">
-          Play Test Beep
-        </button>
       </div>
     </div>
   </div>

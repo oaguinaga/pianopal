@@ -36,10 +36,8 @@ const highlightedNotes = computed(() => {
     `Bb${octave}`,
     `C#${octave}`,
   ];
-}); // Highlight notes using the currently selected octave
-// removed local handleConfigChange in favor of reusable util
+});
 
-// Audio synth integration (declare early to satisfy linter order)
 const isClient = typeof window !== "undefined";
 const audio = isClient ? (await import("~/composables/use-audio-synth")).useAudioSynth() : null;
 const audioEnabled = computed(() => Boolean(audio?.audioInitialized.value));
@@ -68,21 +66,6 @@ async function enableAudio() {
   await audio.startAudioContextIfNeeded();
   if (!audio.audioInitialized.value)
     await audio.initAudioChain();
-  // Play a short test beep to confirm audio is active
-  try {
-    await audio.testBeep(0.2, 440);
-  }
-  catch {}
-}
-
-async function playDebugBeep() {
-  if (!audio)
-    return;
-  await audio.startAudioContextIfNeeded();
-  try {
-    await audio.testBeep(0.25, 660);
-  }
-  catch {}
 }
 
 // Note playback is triggered directly in handleNoteOn/Off to ensure
@@ -249,7 +232,6 @@ async function playDebugBeep() {
             </div>
           </div>
 
-          <!-- Sound Panel placed between piano and configuration -->
           <div class="mt-6">
             <ClientOnly>
               <sound-control-panel
@@ -262,7 +244,6 @@ async function playDebugBeep() {
                 :instrument="audio.instrument.value"
                 :enabled="audioEnabled"
                 @enable-audio="enableAudio"
-                @play-test-beep="playDebugBeep"
                 @update:is-muted="audio.setMuted ? audio.setMuted($event) : ($event ? (audio.isMuted.value ? undefined : audio.toggleMute()) : (audio.isMuted.value ? audio.toggleMute() : undefined))"
                 @update:volume-db="audio.setVolume($event)"
                 @update:reverb-enabled="audio.setReverbEnabled($event)"
@@ -270,11 +251,6 @@ async function playDebugBeep() {
                 @update:low-latency="audio.setLowLatency($event)"
                 @update:instrument="audio.setInstrument($event)"
               />
-              <div class="mt-3">
-                <button class="btn btn-secondary btn-sm" @click="playDebugBeep">
-                  Play Test Beep
-                </button>
-              </div>
             </ClientOnly>
           </div>
 

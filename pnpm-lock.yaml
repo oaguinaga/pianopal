@@ -45,8 +45,8 @@ dependencies:
     specifier: ^4.1.11
     version: 4.1.11
   tone:
-    specifier: ^14.8.49
-    version: 14.9.17
+    specifier: ^15.1.22
+    version: 15.1.22
   vue:
     specifier: ^3.5.17
     version: 3.5.18(typescript@5.9.2)
@@ -10335,8 +10335,8 @@ packages:
   /toml@3.0.0:
     resolution: {integrity: sha512-y/mWCZinnvxjTKYhJ+pYxwD0mRLVvOtdS2Awbgxln6iEnt4rk0yBxeSBHkGJcPucRiG0e55mwWp+g/05rsrd6w==}
 
-  /tone@14.9.17:
-    resolution: {integrity: sha512-+Qb7M4NMua+tb5Z52+MEVmjye0fjJuIFBePx423pqr9E6/lHDqZAG+fUAvo+Ujm48q0s9bVLRAyT1ETJJglNtg==}
+  /tone@15.1.22:
+    resolution: {integrity: sha512-TCScAGD4sLsama5DjvTUXlLDXSqPealhL64nsdV1hhr6frPWve0DeSo63AKnSJwgfg55fhvxj0iPPRwPN5o0ag==}
     dependencies:
       standardized-audio-context: 25.3.77
       tslib: 2.8.1

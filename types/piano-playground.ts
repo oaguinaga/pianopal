@@ -19,13 +19,16 @@ export type PianoPlaygroundProps = {
   highlightedNotes?: string[];
   showKeyboardHints?: boolean;
   midiInput?: boolean;
+  /** True when the audio context/chain is enabled; used for banner control */
+  audioEnabled?: boolean;
 };
 
 // PianoPlayground component emit types
 export type PianoPlaygroundEmits = {
-  noteOn: [note: string, source?: "keyboard" | "midi" | "ui"];
-  noteOff: [note: string];
-  selectedOctaveChange: [selectedOctaveIndex: number];
+  "noteOn": [note: string, source?: "keyboard" | "midi" | "ui"];
+  "noteOff": [note: string];
+  "selectedOctaveChange": [selectedOctaveIndex: number];
+  "enable-audio": [];
 };
 
 // Keyboard mapping types

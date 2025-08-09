@@ -24,6 +24,10 @@ const props = withDefaults(defineProps<PianoPlaygroundProps>(), {
 // Emits
 const emit = defineEmits<PianoPlaygroundEmits>();
 
+// Audio enabled state and MIDI-banner flag
+const audioEnabled = computed(() => Boolean(props.audioEnabled));
+const showAudioBlockedHint = ref(false);
+
 // State managed by keyboard composable
 const pianoRef = ref<HTMLElement>();
 const {
@@ -69,6 +73,8 @@ const {
     if (!midiActiveNotes.value.includes(noteId))
       midiActiveNotes.value.push(noteId);
     emit("noteOn", noteId, "midi");
+    if (!audioEnabled.value)
+      showAudioBlockedHint.value = true;
   },
   onNoteOff: (noteId) => {
     midiActiveNotes.value = midiActiveNotes.value.filter(n => n !== noteId);
@@ -77,6 +83,12 @@ const {
 });
 
 const mergedActiveNotes = computed(() => Array.from(new Set([...activeNotes.value, ...midiActiveNotes.value])));
+
+// Hide the MIDI banner as soon as audio is enabled
+watch(audioEnabled, (enabled) => {
+  if (enabled)
+    showAudioBlockedHint.value = false;
+});
 </script>
 
 <template>
@@ -95,6 +107,20 @@ const mergedActiveNotes = computed(() => Array.from(new Set([...activeNotes.valu
       <span class="text-xs ">
         Keyboard input paused while focused on other controls. Click the piano to resume playing.
       </span>
+    </div>
+    <!-- Floating banner when MIDI is used but audio is not enabled -->
+    <div
+      v-if="showAudioBlockedHint && !audioEnabled"
+      class="alert alert-warning shadow-lg absolute left-1/2 top-24 -translate-x-1/2 z-50 w-[min(90vw,420px)] flex items-center gap-3"
+      role="status"
+    >
+      <Icon name="hugeicons:music-note-02" size="28" />
+      <span class="text-xs">
+        Audio is blocked by the browser until enabled. Press any key, click, or use the button to start audio.
+      </span>
+      <button class="btn btn-xs btn-primary ml-auto" @click="$emit('enable-audio')">
+        Enable Audio
+      </button>
     </div>
     <!-- Visual Piano Component -->
     <VisualPiano

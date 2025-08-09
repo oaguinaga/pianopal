@@ -298,10 +298,12 @@ async function playDebugBeep() {
               :show-keyboard-guide="testShowKeyboardGuide"
               :show-keyboard-hints="testShowKeyboardHints"
               :midi-input="testEnableMidi"
+              :audio-enabled="audioEnabled"
               :highlighted-notes="highlightedNotes"
 
               @note-on="handleNoteOn"
               @note-off="handleNoteOff"
+              @enable-audio="enableAudio"
               @selected-octave-change="onSelectedOctaveChange"
             />
           </div>

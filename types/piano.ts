@@ -39,8 +39,8 @@ export type VisualPianoProps = {
 };
 
 export type VisualPianoEmits = {
-  noteOn: [note: string];
-  noteOff: [note: string];
+  "note-on": [note: string];
+  "note-off": [note: string];
 };
 
 // Piano measurement types

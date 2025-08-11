@@ -25,9 +25,9 @@ export type PianoPlaygroundProps = {
 
 // PianoPlayground component emit types
 export type PianoPlaygroundEmits = {
-  "noteOn": [note: string, source?: "keyboard" | "midi" | "ui"];
-  "noteOff": [note: string];
-  "selectedOctaveChange": [selectedOctaveIndex: number];
+  "note-on": [note: string, source?: "keyboard" | "midi" | "ui"];
+  "note-off": [note: string];
+  "selected-octave-change": [selectedOctaveIndex: number];
   "enable-audio": [];
 };
 

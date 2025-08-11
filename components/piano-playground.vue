@@ -38,13 +38,13 @@ const {
 } = useKeyboardPiano({
   octaveRange: computed(() => props.octaveRange),
   startOctave: computed(() => props.startOctave),
-  emitNoteOn: note => emit("noteOn", note, "keyboard"),
-  emitNoteOff: note => emit("noteOff", note),
+  emitNoteOn: note => emit("note-on", note, "keyboard"),
+  emitNoteOff: note => emit("note-off", note),
   getRootEl: () => pianoRef.value ?? null,
 });
 
 watch(selectedOctaveIndex, (idx) => {
-  emit("selectedOctaveChange", idx);
+  emit("selected-octave-change", idx);
 });
 
 // Expose selected octave if parent needs to read it
@@ -72,13 +72,13 @@ const {
   onNoteOn: (noteId) => {
     if (!midiActiveNotes.value.includes(noteId))
       midiActiveNotes.value.push(noteId);
-    emit("noteOn", noteId, "midi");
+    emit("note-on", noteId, "midi");
     if (!audioEnabled.value)
       showAudioBlockedHint.value = true;
   },
   onNoteOff: (noteId) => {
     midiActiveNotes.value = midiActiveNotes.value.filter(n => n !== noteId);
-    emit("noteOff", noteId);
+    emit("note-off", noteId);
   },
 });
 
@@ -135,8 +135,8 @@ watch(audioEnabled, (enabled) => {
       :show-octave-labels="showOctaveLabels"
       :show-keyboard-hints="showKeyboardHints"
       :keyboard-hints="noteIdToKeyMap"
-      @note-on="emit('noteOn', $event, 'ui')"
-      @note-off="emit('noteOff', $event)"
+      @note-on="emit('note-on', $event, 'ui')"
+      @note-off="emit('note-off', $event)"
     />
 
     <!-- Keyboard Guide -->

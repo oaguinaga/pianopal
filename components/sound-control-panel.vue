@@ -10,31 +10,31 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
-  (e: "update:isMuted", val: boolean): void;
-  (e: "update:volumeDb", val: number): void;
-  (e: "update:reverbEnabled", val: boolean): void;
-  (e: "update:roomSize", val: number): void;
-  (e: "update:lowLatency", val: boolean): void;
+  (e: "update:is-muted", val: boolean): void;
+  (e: "update:volume-db", val: number): void;
+  (e: "update:reverb-enabled", val: boolean): void;
+  (e: "update:room-size", val: number): void;
+  (e: "update:low-latency", val: boolean): void;
   (e: "update:instrument", val: "piano" | "polysynth" | "amsynth" | "fmsynth" | "membranesynth"): void;
   (e: "enable-audio"): void;
 }>();
 
 function onMuteToggle() {
-  emit("update:isMuted", !props.isMuted);
+  emit("update:is-muted", !props.isMuted);
 }
 function onVolume(e: Event) {
   const t = e.target as HTMLInputElement;
-  emit("update:volumeDb", Number(t.value));
+  emit("update:volume-db", Number(t.value));
 }
 function onReverbToggle() {
-  emit("update:reverbEnabled", !props.reverbEnabled);
+  emit("update:reverb-enabled", !props.reverbEnabled);
 }
 function onRoomSize(e: Event) {
   const t = e.target as HTMLInputElement;
-  emit("update:roomSize", Number(t.value));
+  emit("update:room-size", Number(t.value));
 }
 function onLatencyToggle() {
-  emit("update:lowLatency", !props.lowLatency);
+  emit("update:low-latency", !props.lowLatency);
 }
 function onInstrument(e: Event) {
   const t = e.target as HTMLSelectElement;

@@ -17,8 +17,8 @@
   - SSR-compatible ResizeObserver usage
 
   Events:
-  - noteOn(noteId: string) - Emitted when a key is pressed
-  - noteOff(noteId: string) - Emitted when a key is released
+  - note-on(noteId: string) - Emitted when a key is pressed
+  - note-off(noteId: string) - Emitted when a key is released
 -->
 
 <script setup lang="ts">
@@ -133,7 +133,7 @@ function handleKeyPress(note: string, octave: number) {
     internalActiveNotes.value.push(noteId);
   }
 
-  emit("noteOn", noteId);
+  emit("note-on", noteId);
 }
 
 function handleKeyRelease(note: string, octave: number) {
@@ -145,7 +145,7 @@ function handleKeyRelease(note: string, octave: number) {
   // Remove from internal active notes
   internalActiveNotes.value = internalActiveNotes.value.filter(id => id !== noteId);
 
-  emit("noteOff", noteId);
+  emit("note-off", noteId);
 }
 
 // Enhanced accessibility - generate ARIA labels

@@ -233,15 +233,12 @@ export function useAudioSynth() {
        * Some instruments (e.g., Tone.Sampler) expose a `loaded` Promise that
        * resolves when remote assets (samples) have finished loading. We await
        * that if present to avoid connecting/playing before assets are ready.
-       *
-       * The guard below looks verbose for safety and DX:
-       * - `"loaded" in synth` ensures the property exists before access
-       * - `(synth as any).loaded?.then` checks that it is Promise-like
        */
       /** Wait for the synth to load its samples (if applicable). */
       async function waitForSynthLoaded(current: any) {
         const isPromiseLike
           = current && "loaded" in current && typeof (current as any).loaded?.then === "function";
+
         if (isPromiseLike) {
           try {
             await (current as any).loaded;

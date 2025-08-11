@@ -18,10 +18,15 @@ const props = withDefaults(defineProps<PianoPlaygroundProps>(), {
   highlightedNotes: () => [],
   showKeyboardHints: false,
   midiInput: false,
+  isKeyboardBlocked: false,
 });
 
 // Emits
 const emit = defineEmits<PianoPlaygroundEmits>();
+
+// Audio enabled state and MIDI-banner flag
+const audioEnabled = computed(() => Boolean(props.audioEnabled));
+const showAudioBlockedHint = ref(false);
 
 // State managed by keyboard composable
 const pianoRef = ref<HTMLElement>();
@@ -33,7 +38,7 @@ const {
 } = useKeyboardPiano({
   octaveRange: computed(() => props.octaveRange),
   startOctave: computed(() => props.startOctave),
-  emitNoteOn: note => emit("noteOn", note),
+  emitNoteOn: note => emit("noteOn", note, "keyboard"),
   emitNoteOff: note => emit("noteOff", note),
   getRootEl: () => pianoRef.value ?? null,
 });
@@ -67,7 +72,9 @@ const {
   onNoteOn: (noteId) => {
     if (!midiActiveNotes.value.includes(noteId))
       midiActiveNotes.value.push(noteId);
-    emit("noteOn", noteId);
+    emit("noteOn", noteId, "midi");
+    if (!audioEnabled.value)
+      showAudioBlockedHint.value = true;
   },
   onNoteOff: (noteId) => {
     midiActiveNotes.value = midiActiveNotes.value.filter(n => n !== noteId);
@@ -76,6 +83,12 @@ const {
 });
 
 const mergedActiveNotes = computed(() => Array.from(new Set([...activeNotes.value, ...midiActiveNotes.value])));
+
+// Hide the MIDI banner as soon as audio is enabled
+watch(audioEnabled, (enabled) => {
+  if (enabled)
+    showAudioBlockedHint.value = false;
+});
 </script>
 
 <template>
@@ -95,6 +108,20 @@ const mergedActiveNotes = computed(() => Array.from(new Set([...activeNotes.valu
         Keyboard input paused while focused on other controls. Click the piano to resume playing.
       </span>
     </div>
+    <!-- Floating banner when MIDI is used but audio is not enabled -->
+    <div
+      v-if="showAudioBlockedHint && !audioEnabled"
+      class="alert alert-warning shadow-lg absolute left-1/2 top-24 -translate-x-1/2 z-50 w-[min(90vw,420px)] flex items-center gap-3"
+      role="status"
+    >
+      <Icon name="hugeicons:music-note-02" size="28" />
+      <span class="text-xs">
+        Audio is blocked by the browser until enabled. Press any key, click, or use the button to start audio.
+      </span>
+      <button class="btn btn-xs btn-primary ml-auto" @click="$emit('enable-audio')">
+        Enable Audio
+      </button>
+    </div>
     <!-- Visual Piano Component -->
     <VisualPiano
       :active-notes="mergedActiveNotes"
@@ -108,6 +135,8 @@ const mergedActiveNotes = computed(() => Array.from(new Set([...activeNotes.valu
       :show-octave-labels="showOctaveLabels"
       :show-keyboard-hints="showKeyboardHints"
       :keyboard-hints="noteIdToKeyMap"
+      @note-on="emit('noteOn', $event, 'ui')"
+      @note-off="emit('noteOff', $event)"
     />
 
     <!-- Keyboard Guide -->
@@ -136,7 +165,7 @@ const mergedActiveNotes = computed(() => Array.from(new Set([...activeNotes.valu
             {{ i }}
           </kbd>
         </button>
-        <span class="ml-auto text-xs text-gray-500">Press <kbd class="kbd kbd-xs">1</kbd>..<kbd class="kbd kbd-xs">{{ octaveRange }}</kbd> to switch</span>
+        <span class="ml-auto text-xs text-gray-500">Press <kbd class="kbd kbd-sm">1</kbd>..<kbd class="kbd kbd-sm">{{ octaveRange }}</kbd> to switch</span>
       </div>
 
       <!-- Key hints -->
@@ -188,35 +217,37 @@ const mergedActiveNotes = computed(() => Array.from(new Set([...activeNotes.valu
         </div>
       </div>
 
-      <!-- MIDI inputs -->
-      <div class="mt-6">
-        <h4 class="font-medium mb-2">
-          MIDI Input
-        </h4>
-        <div v-if="!isMidiSupported" class="text-sm text-warning">
-          MIDI not supported in this browser.
-        </div>
-        <div v-else>
-          <div v-if="midiInputs.length === 0" class="text-sm opacity-70">
-            No MIDI devices detected.
+      <!-- MIDI inputs (client-only to avoid SSR hydration mismatch) -->
+      <ClientOnly>
+        <div class="mt-6">
+          <h4 class="font-medium mb-2">
+            MIDI Input
+          </h4>
+          <div v-if="!isMidiSupported" class="text-sm text-warning">
+            MIDI not supported in this browser.
           </div>
-          <div v-else class="flex items-center gap-2">
-            <label class="text-sm">Device:</label>
-            <select v-model="selectedMidiInputId" class="select select-bordered select-sm">
-              <option
-                v-for="i in midiInputs"
-                :key="i.id"
-                :value="i.id"
-              >
-                {{ i.name }}
-              </option>
-            </select>
+          <div v-else>
+            <div v-if="midiInputs.length === 0" class="text-sm opacity-70">
+              No MIDI devices detected.
+            </div>
+            <div v-else class="flex items-center gap-2">
+              <label class="text-sm">Device:</label>
+              <select v-model="selectedMidiInputId" class="select select-bordered select-sm">
+                <option
+                  v-for="i in midiInputs"
+                  :key="i.id"
+                  :value="i.id"
+                >
+                  {{ i.name }}
+                </option>
+              </select>
+            </div>
+            <p v-if="midiError" class="text-error text-xs mt-1">
+              {{ midiError }}
+            </p>
           </div>
-          <p v-if="midiError" class="text-error text-xs mt-1">
-            {{ midiError }}
-          </p>
         </div>
-      </div>
+      </ClientOnly>
     </div>
   </div>
 </template>

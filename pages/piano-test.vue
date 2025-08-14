@@ -76,7 +76,7 @@ async function enableAudio() {
   <div class="container mx-auto p-6 space-y-6">
     <div class="text-center">
       <h1 class="text-3xl font-bold mb-2">
-        Piano Playground
+        Piano Test Playground
       </h1>
       <p class="text-base-content/70">
         Interactive piano with keyboard input support

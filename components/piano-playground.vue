@@ -101,7 +101,7 @@ watch(audioEnabled, (enabled) => {
     <!-- Floating banner when keyboard is blocked by focus on other controls -->
     <div
       v-if="isKeyboardBlocked"
-      class="alert alert-warning  shadow-lg absolute left-1/2 top-8 -translate-x-1/2 z-50 w-[min(90vw,400px)] flex items-center gap-2"
+      class="alert alert-warning shadow-lg absolute left-1/2 top-8 -translate-x-1/2 z-50 w-[min(90vw,400px)] flex items-center gap-2"
       role="status"
     >
       <Icon name="hugeicons:alert-square" size="32" />
@@ -146,6 +146,7 @@ watch(audioEnabled, (enabled) => {
       :octave-range="octaveRange"
       :visible-keyboard-mapping="visibleKeyboardMapping"
       :selected-octave-index="selectedOctaveIndex"
+      :start-octave="startOctave"
       @octave-change="selectedOctaveIndex = $event"
     />
   </div>

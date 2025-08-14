@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { onMounted } from "vue";
-
 import type { ColorMode, LabelStyle } from "~/types/piano";
+
+import { useMidi } from "~/composables/use-midi";
 
 // Test data for piano component
 const activeNotes = ref<string[]>([]); // Active notes from keyboard/MIDI input
@@ -45,39 +45,18 @@ const isClient = typeof window !== "undefined";
 const audio = isClient ? (await import("~/composables/use-audio-synth")).useAudioSynth() : null;
 const audioEnabled = computed(() => Boolean(audio?.audioInitialized.value));
 
-// MIDI state (moved from piano-playground)
-const isMidiSupported = ref(false);
-const midiInputs = ref<Array<{ id: string; name: string }>>([]);
-const selectedMidiInputId = ref<string>("");
-const midiError = ref<string>("");
-
-// Initialize MIDI support
-onMounted(async () => {
-  if (navigator.requestMIDIAccess) {
-    try {
-      const midiAccess = await navigator.requestMIDIAccess();
-      isMidiSupported.value = true;
-
-      const inputs = Array.from(midiAccess.inputs.values());
-      midiInputs.value = inputs.map(input => ({
-        id: input.id,
-        name: input.name || `MIDI Input ${input.id}`,
-      }));
-
-      if (inputs.length > 0) {
-        selectedMidiInputId.value = inputs[0].id;
-      }
-    }
-    catch (error) {
-      midiError.value = error instanceof Error ? error.message : "Failed to access MIDI";
-    }
-  }
+// Use the useMidi composable instead of duplicate MIDI state
+const {
+  isMidiSupported,
+  midiInputs,
+  selectedMidiInputId,
+  midiError,
+  updateMidiInput,
+} = useMidi({
+  enabled: computed(() => pianoConfig.enableMidi),
+  onNoteOn: noteId => handleNoteOn(noteId, "midi"),
+  onNoteOff: handleNoteOff,
 });
-
-function updateMidiInput(inputId: string) {
-  selectedMidiInputId.value = inputId;
-  // You can add additional MIDI input handling logic here
-}
 
 async function handleNoteOn(noteId: string, _source?: "keyboard" | "midi" | "ui") {
   if (!activeNotes.value.includes(noteId))
@@ -100,9 +79,17 @@ async function handleNoteOff(noteId: string) {
 async function enableAudio() {
   if (!audio)
     return;
+
+  // Preserve current mute state
+  const wasMuted = audio.isMuted.value;
+
   await audio.startAudioContextIfNeeded();
   if (!audio.audioInitialized.value)
     await audio.initAudioChain();
+
+  // Restore mute state
+  if (wasMuted !== undefined)
+    audio.setMuted(wasMuted);
 }
 
 function updateIsMuted(isMuted: boolean) {
@@ -111,6 +98,14 @@ function updateIsMuted(isMuted: boolean) {
       audio.setMuted(isMuted);
     else
       audio.isMuted.value = isMuted;
+  }
+}
+
+function toggleMute(event: Event) {
+  if (audio) {
+    const current = audio?.isMuted.value;
+    audio.setMuted(!current);
+    blurTargetOrActiveElementOnChange(event);
   }
 }
 
@@ -130,20 +125,44 @@ function updateIsMuted(isMuted: boolean) {
     </div>
 
     <!-- Piano Component Test -->
-    <div class="card bg-base-100 shadow-xl">
+    <div class="card bg-base-100 shadow-xl" data-theme="dark">
       <div class="card-body">
         <div class="space-y-6">
           <!-- Configuration Panel -->
           <div class="flex justify-end">
+            <!-- add a music off/on toggle here -->
+            <!-- <client-only> -->
+            <div class="form-control">
+              <label class="label cursor-pointer justify-start gap-3 text-base-content p-2">
+                <input
+                  type="checkbox"
+                  class="checkbox checkbox-sm hidden"
+                  :checked="audio?.isMuted.value"
+                  @change="toggleMute"
+                >
+                <Icon
+                  v-if="audio?.isMuted.value"
+                  name="hugeicons:volume-off"
+                  size="24"
+                />
+                <Icon
+                  v-else
+                  name="hugeicons:volume-high"
+                  size="24"
+                />
+              </label>
+            </div>
+            <!-- </client-only> -->
+
             <piano-config-panel
               :config="pianoConfig"
-              :show-octave-options="false"
+              :show-octave-options="true"
               :show-display-options="true"
               :show-keyboard-options="true"
               :show-advanced-options="false"
               @update:config="(newConfig) => Object.assign(pianoConfig, newConfig)"
             />
-            <ClientOnly>
+            <client-only>
               <sound-control-panel
                 v-if="audio"
                 :is-muted="audio.isMuted.value"
@@ -166,7 +185,7 @@ function updateIsMuted(isMuted: boolean) {
                 @update:instrument="audio.setInstrument($event)"
                 @update:midi-input="updateMidiInput"
               />
-            </ClientOnly>
+            </client-only>
           </div>
 
           <!-- Interactive Piano -->

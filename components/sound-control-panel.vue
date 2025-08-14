@@ -213,37 +213,35 @@ function onMidiInputChange(e: Event) {
               MIDI Input
             </h4>
 
-            <ClientOnly>
-              <div v-if="!isMidiSupported" class="text-sm text-warning">
-                MIDI not supported in this browser.
+            <div v-if="!isMidiSupported" class="text-sm text-warning">
+              MIDI not supported in this browser.
+            </div>
+            <div v-else>
+              <div v-if="midiInputs.length === 0" class="text-sm opacity-70">
+                No MIDI devices detected.
               </div>
-              <div v-else>
-                <div v-if="midiInputs.length === 0" class="text-sm opacity-70">
-                  No MIDI devices detected.
-                </div>
-                <div v-else class="form-control">
-                  <label class="label">
-                    <span class="label-text text-sm">Device</span>
-                  </label>
-                  <select
-                    :value="selectedMidiInputId"
-                    class="select select-bordered select-sm w-full"
-                    @change="onMidiInputChange"
+              <div v-else class="form-control">
+                <label class="label">
+                  <span class="label-text text-sm">Device</span>
+                </label>
+                <select
+                  :value="selectedMidiInputId"
+                  class="select select-bordered select-sm w-full"
+                  @change="onMidiInputChange"
+                >
+                  <option
+                    v-for="input in midiInputs"
+                    :key="input.id"
+                    :value="input.id"
                   >
-                    <option
-                      v-for="input in midiInputs"
-                      :key="input.id"
-                      :value="input.id"
-                    >
-                      {{ input.name }}
-                    </option>
-                  </select>
-                </div>
-                <p v-if="midiError" class="text-error text-xs mt-1">
-                  {{ midiError }}
-                </p>
+                    {{ input.name }}
+                  </option>
+                </select>
               </div>
-            </ClientOnly>
+              <p v-if="midiError" class="text-error text-xs mt-1">
+                {{ midiError }}
+              </p>
+            </div>
           </div>
         </div>
       </div>

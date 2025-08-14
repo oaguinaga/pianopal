@@ -1,28 +1,28 @@
 <script setup lang="ts">
 import type { ColorMode, LabelStyle } from "~/types/piano";
-
-import { blurTargetOrActiveElementOnChange } from "~/utils/dom";
 // Test data for piano component
 const activeNotes = ref<string[]>([]); // Active notes from keyboard/MIDI input
 
-// Test configuration options
-const testOctaveRange = ref(2);
-const testStartOctave = ref(3);
-const testLabelStyle = ref<LabelStyle>("letter");
-const testColorMode = ref<ColorMode>("per-note");
-const testShowOctaveLabels = ref(false);
-const testShowKeyboardHints = ref(true);
-const testShowKeyboardGuide = ref(true);
-const testEnableMidi = ref(true);
+// Piano configuration object
+const pianoConfig = reactive({
+  octaveRange: 2,
+  startOctave: 3,
+  labelStyle: "letter" as LabelStyle,
+  colorMode: "per-note" as ColorMode,
+  showOctaveLabels: false,
+  showKeyboardHints: true,
+  showKeyboardGuide: true,
+  enableMidi: true,
+});
 
-const selectedOctaveIndexFromChild = ref<number>(Math.floor((testOctaveRange.value - 1) / 2));
+const selectedOctaveIndexFromChild = ref<number>(Math.floor((pianoConfig.octaveRange - 1) / 2));
 
 // Listen to explicit child event instead of exposed ref
 function onSelectedOctaveChange(idx: number) {
   selectedOctaveIndexFromChild.value = idx;
 }
 
-const selectedOctaveForHighlights = computed(() => testStartOctave.value + selectedOctaveIndexFromChild.value);
+const selectedOctaveForHighlights = computed(() => pianoConfig.startOctave + selectedOctaveIndexFromChild.value);
 
 const highlightedNotes = computed(() => {
   const octave = selectedOctaveForHighlights.value;
@@ -90,174 +90,42 @@ async function enableAudio() {
           PianoPlayground Component
         </h2>
         <div class="space-y-6">
-          <!-- Interactive Test Controls -->
-          <div class="bg-base-200 p-4 rounded-lg">
-            <h3 class="text-lg font-semibold mb-4">
-              Configuration
-            </h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              <div class="form-control">
-                <label class="label">
-                  <span class="label-text">Octave Range</span>
-                </label>
-                <select
-                  v-model="testOctaveRange"
-                  class="select select-bordered select-sm"
-                  @change="blurTargetOrActiveElementOnChange"
-                >
-                  <option :value="1">
-                    1 Octave
-                  </option>
-                  <option :value="2">
-                    2 Octaves
-                  </option>
-                  <option :value="3">
-                    3 Octaves
-                  </option>
-                  <option :value="4">
-                    4 Octaves
-                  </option>
-                  <option :value="7">
-                    7 Octaves
-                  </option>
-                </select>
-              </div>
-              <div class="form-control">
-                <label class="label">
-                  <span class="label-text">Start Octave</span>
-                </label>
-                <select
-                  v-model="testStartOctave"
-                  class="select select-bordered"
-                  @change="blurTargetOrActiveElementOnChange"
-                >
-                  <option :value="1">
-                    Octave 1
-                  </option>
-                  <option :value="2">
-                    Octave 2
-                  </option>
-                  <option :value="3">
-                    Octave 3
-                  </option>
-                  <option :value="4">
-                    Octave 4
-                  </option>
-                  <option :value="5">
-                    Octave 5
-                  </option>
-                </select>
-              </div>
-              <div class="form-control">
-                <label class="label">
-                  <span class="label-text">Label Style</span>
-                </label>
-                <select
-                  v-model="testLabelStyle"
-                  class="select select-bordered"
-                  @change="blurTargetOrActiveElementOnChange"
-                >
-                  <option value="letter">
-                    Letter (C, D, E...)
-                  </option>
-                  <option value="do-re-mi">
-                    Do Re Mi
-                  </option>
-                  <option value="none">
-                    No Labels
-                  </option>
-                </select>
-              </div>
-              <div class="form-control">
-                <label class="label">
-                  <span class="label-text">Color Mode</span>
-                </label>
-                <select
-                  v-model="testColorMode"
-                  class="select select-bordered"
-                  @change="blurTargetOrActiveElementOnChange"
-                >
-                  <option value="per-note">
-                    Per-Note Colors
-                  </option>
-                  <option value="mono">
-                    Mono Color
-                  </option>
-                </select>
-              </div>
-              <div class="form-control">
-                <label class="label cursor-pointer">
-                  <span class="label-text">Show Keyboard Guide</span>
-                  <input
-                    v-model="testShowKeyboardGuide"
-                    type="checkbox"
-                    class="checkbox"
-                    @change="blurTargetOrActiveElementOnChange"
-                  >
-                </label>
-              </div>
-              <div class="form-control">
-                <label class="label cursor-pointer">
-                  <span class="label-text">Show Octave Numbers</span>
-                  <input
-                    v-model="testShowOctaveLabels"
-                    type="checkbox"
-                    class="checkbox"
-                    @change="blurTargetOrActiveElementOnChange"
-                  >
-                </label>
-              </div>
-              <div class="form-control">
-                <label class="label cursor-pointer">
-                  <span class="label-text">Show Keyboard Hints</span>
-                  <input
-                    v-model="testShowKeyboardHints"
-                    type="checkbox"
-                    class="checkbox"
-                    @change="blurTargetOrActiveElementOnChange"
-                  >
-                </label>
-              </div>
-              <div class="form-control">
-                <label class="label cursor-pointer">
-                  <span class="label-text">Enable MIDI (if supported)</span>
-                  <input
-                    v-model="testEnableMidi"
-                    type="checkbox"
-                    class="checkbox"
-                    @change="blurTargetOrActiveElementOnChange"
-                  >
-                </label>
-              </div>
-            </div>
-          </div>
+          <!-- Configuration Panels -->
+          <div class="flex justify-end items-start gap-4">
+            <!-- Piano Configuration Panel -->
+            <piano-config-panel
+              :config="pianoConfig"
+              :show-octave-options="true"
+              :show-display-options="true"
+              :show-keyboard-options="true"
+              :show-advanced-options="true"
+              @update:config="(newConfig) => Object.assign(pianoConfig, newConfig)"
+            />
 
-          <div class="mt-6">
-            <ClientOnly>
-              <sound-control-panel
-                v-if="audio"
-                :is-muted="audio.isMuted.value"
-                :volume-db="audio.volumeDb.value"
-                :reverb-enabled="audio.reverbEnabled.value"
-                :room-size="audio.reverbRoomSize.value"
-                :low-latency="audio.lowLatency.value"
-                :instrument="audio.instrument.value"
-                :enabled="audioEnabled"
-                @enable-audio="enableAudio"
-                @update:is-muted="audio.setMuted ? audio.setMuted($event) : ($event ? (audio.isMuted.value ? undefined : audio.toggleMute()) : (audio.isMuted.value ? audio.toggleMute() : undefined))"
-                @update:volume-db="audio.setVolume($event)"
-                @update:reverb-enabled="audio.setReverbEnabled($event)"
-                @update:room-size="audio.setReverbRoomSize($event)"
-                @update:low-latency="audio.setLowLatency($event)"
-                @update:instrument="audio.setInstrument($event)"
-              />
-            </ClientOnly>
+            <!-- Sound Control Panel -->
+            <sound-control-panel
+              v-if="audio"
+              :is-muted="audio.isMuted.value"
+              :volume-db="audio.volumeDb.value"
+              :reverb-enabled="audio.reverbEnabled.value"
+              :room-size="audio.reverbRoomSize.value"
+              :low-latency="audio.lowLatency.value"
+              :instrument="audio.instrument.value"
+              :enabled="audioEnabled"
+              @enable-audio="enableAudio"
+              @update:is-muted="audio.setMuted ? audio.setMuted($event) : ($event ? (audio.isMuted.value ? undefined : audio.toggleMute()) : (audio.isMuted.value ? audio.toggleMute() : undefined))"
+              @update:volume-db="audio.setVolume($event)"
+              @update:reverb-enabled="audio.setReverbEnabled($event)"
+              @update:room-size="audio.setReverbRoomSize($event)"
+              @update:low-latency="audio.setLowLatency($event)"
+              @update:instrument="audio.setInstrument($event)"
+            />
           </div>
 
           <!-- Interactive Piano -->
           <div>
             <h3 class="text-lg font-semibold mb-2">
-              Interactive Piano ({{ testOctaveRange }} octave{{ testOctaveRange !== 1 ? 's' : '' }} starting from octave {{ testStartOctave }})
+              Interactive Piano ({{ pianoConfig.octaveRange }} octave{{ pianoConfig.octaveRange !== 1 ? 's' : '' }} starting from octave {{ pianoConfig.startOctave }})
             </h3>
             <div class="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
               <p class="text-sm text-blue-700 dark:text-blue-300">
@@ -266,14 +134,14 @@ async function enableAudio() {
               </p>
             </div>
             <piano-playground
-              :octave-range="testOctaveRange"
-              :start-octave="testStartOctave"
-              :label-style="testLabelStyle"
-              :color-mode="testColorMode"
-              :show-octave-labels="testShowOctaveLabels"
-              :show-keyboard-guide="testShowKeyboardGuide"
-              :show-keyboard-hints="testShowKeyboardHints"
-              :midi-input="testEnableMidi"
+              :octave-range="pianoConfig.octaveRange"
+              :start-octave="pianoConfig.startOctave"
+              :label-style="pianoConfig.labelStyle"
+              :color-mode="pianoConfig.colorMode"
+              :show-octave-labels="pianoConfig.showOctaveLabels"
+              :show-keyboard-guide="pianoConfig.showKeyboardGuide"
+              :show-keyboard-hints="pianoConfig.showKeyboardHints"
+              :midi-input="pianoConfig.enableMidi"
               :audio-enabled="audioEnabled"
               :highlighted-notes="highlightedNotes"
 

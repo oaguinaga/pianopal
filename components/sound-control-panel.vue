@@ -43,111 +43,159 @@ function onInstrument(e: Event) {
 </script>
 
 <template>
-  <div class="rounded-lg border border-base-300 bg-base-100 p-4">
-    <div class="flex items-center justify-between mb-3">
-      <h3 class="text-base font-semibold">
-        Sound Controls
-      </h3>
-      <button
-        class="btn btn-sm"
-        :class="props.enabled ? 'btn-primary' : ''"
-        @click="$emit('enable-audio')"
-      >
-        {{ props.enabled ? 'Audio Enabled' : 'Enable Audio' }}
-      </button>
+  <div class="dropdown dropdown-end">
+    <div
+      tabindex="0"
+      role="button"
+      class="btn btn-ghost btn-square"
+    >
+      <Icon name="hugeicons:settings-05" size="24" />
     </div>
-
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <div class="form-control">
-        <label class="label cursor-pointer">
-          <span class="label-text">Mute</span>
-          <input
-            type="checkbox"
-            class="toggle"
-            :checked="isMuted"
-            @change="onMuteToggle"
+    <div tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-200 rounded-box w-80 max-h-96 overflow-y-auto">
+      <div class="p-4 space-y-4">
+        <div class="flex items-center justify-between">
+          <h3 class="text-lg font-semibold text-base-content">
+            Sound Controls
+          </h3>
+          <button
+            class="btn btn-sm"
+            @click="$emit('enable-audio')"
           >
-        </label>
-      </div>
+            <div
+              v-if="props.enabled"
+              class="inline-grid *:[grid-area:1/1]"
+            >
+              <div class="status status-primary animate-ping" />
+              <div class="status status-primary" />
+            </div>
+            {{ props.enabled ? 'Audio Enabled' : 'Enable Audio' }}
+          </button>
+        </div>
 
-      <div class="form-control">
-        <label class="label">
-          <span class="label-text">Instrument</span>
-        </label>
-        <select
-          class="select select-bordered select-sm"
-          :value="instrument"
-          @change="onInstrument"
-        >
-          <option value="piano">
-            Piano (Sampler)
-          </option>
-          <option value="polysynth">
-            PolySynth
-          </option>
-          <option value="amsynth">
-            AMSynth
-          </option>
-          <option value="fmsynth">
-            FMSynth
-          </option>
-          <option value="membranesynth">
-            MembraneSynth
-          </option>
-        </select>
-      </div>
+        <div class="space-y-4">
+          <!-- Basic Controls -->
+          <div class="space-y-3">
+            <h4 class="text-sm font-medium text-base-content/70 uppercase tracking-wide">
+              Basic Controls
+            </h4>
 
-      <div class="form-control">
-        <label class="label">
-          <span class="label-text">Volume (dB)</span>
-          <span class="label-text-alt">{{ volumeDb }}</span>
-        </label>
-        <input
-          type="range"
-          min="-60"
-          max="0"
-          step="1"
-          :value="volumeDb"
-          class="range"
-          @input="onVolume"
-        >
-      </div>
+            <!-- Mute Toggle -->
+            <div class="form-control">
+              <label class="label cursor-pointer justify-start gap-3">
+                <input
+                  type="checkbox"
+                  class="checkbox checkbox-sm"
+                  :checked="isMuted"
+                  @change="onMuteToggle"
+                >
+                <span class="label-text text-sm">Mute</span>
+              </label>
+            </div>
 
-      <div class="form-control">
-        <label class="label cursor-pointer">
-          <span class="label-text">Reverb</span>
-          <input
-            type="checkbox"
-            class="toggle"
-            :checked="reverbEnabled"
-            @change="onReverbToggle"
-          >
-        </label>
-        <label class="label">
-          <span class="label-text">Room Size</span>
-          <span class="label-text-alt">{{ roomSize.toFixed(2) }}</span>
-        </label>
-        <input
-          type="range"
-          min="0"
-          max="1"
-          step="0.01"
-          :value="roomSize"
-          class="range"
-          @input="onRoomSize"
-        >
-      </div>
+            <!-- Instrument Selection -->
+            <div class="form-control">
+              <label class="label">
+                <span class="label-text text-sm">Instrument</span>
+              </label>
+              <select
+                class="select select-bordered select-sm w-full"
+                :value="instrument"
+                @change="onInstrument"
+              >
+                <option value="piano">
+                  Piano (Sampler)
+                </option>
+                <option value="polysynth">
+                  PolySynth
+                </option>
+                <option value="amsynth">
+                  AMSynth
+                </option>
+                <option value="fmsynth">
+                  FMSynth
+                </option>
+                <option value="membranesynth">
+                  MembraneSynth
+                </option>
+              </select>
+            </div>
+          </div>
 
-      <div class="form-control">
-        <label class="label cursor-pointer">
-          <span class="label-text">Low Latency (mobile)</span>
-          <input
-            type="checkbox"
-            class="toggle"
-            :checked="lowLatency"
-            @change="onLatencyToggle"
-          >
-        </label>
+          <!-- Volume & Effects -->
+          <div class="space-y-3">
+            <h4 class="text-sm font-medium text-base-content/70 uppercase tracking-wide">
+              Volume & Effects
+            </h4>
+
+            <!-- Volume Control -->
+            <div class="form-control">
+              <label class="label">
+                <span class="label-text text-sm">Volume (dB)</span>
+                <span class="label-text-alt text-xs">{{ volumeDb }}</span>
+              </label>
+              <input
+                type="range"
+                min="-60"
+                max="0"
+                step="1"
+                :value="volumeDb"
+                class="range range-xs"
+                @input="onVolume"
+              >
+            </div>
+
+            <!-- Reverb Controls -->
+            <div class="space-y-2">
+              <div class="form-control">
+                <label class="label cursor-pointer justify-start gap-3">
+                  <input
+                    type="checkbox"
+                    class="checkbox checkbox-sm"
+                    :checked="reverbEnabled"
+                    @change="onReverbToggle"
+                  >
+                  <span class="label-text text-sm">Reverb</span>
+                </label>
+              </div>
+
+              <div v-if="reverbEnabled" class="form-control">
+                <label class="label">
+                  <span class="label-text text-sm">Room Size</span>
+                  <span class="label-text-alt text-xs">{{ roomSize.toFixed(2) }}</span>
+                </label>
+                <input
+                  type="range"
+                  min="0"
+                  max="1"
+                  step="0.01"
+                  :value="roomSize"
+                  class="range range-sm"
+                  @input="onRoomSize"
+                >
+              </div>
+            </div>
+          </div>
+
+          <!-- Advanced Settings -->
+          <div class="space-y-3">
+            <h4 class="text-sm font-medium text-base-content/70 uppercase tracking-wide">
+              Advanced
+            </h4>
+
+            <!-- Low Latency Toggle -->
+            <div class="form-control">
+              <label class="label cursor-pointer justify-start gap-3">
+                <input
+                  type="checkbox"
+                  class="checkbox checkbox-sm"
+                  :checked="lowLatency"
+                  @change="onLatencyToggle"
+                >
+                <span class="label-text text-sm">Low Latency (mobile)</span>
+              </label>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>

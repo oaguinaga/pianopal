@@ -96,9 +96,6 @@ function updateIsMuted(isMuted: boolean) {
     <!-- Piano Component Test -->
     <div class="card bg-base-100 shadow-xl">
       <div class="card-body">
-        <h2 class="card-title">
-          PianoPlayground Component
-        </h2>
         <div class="space-y-6">
           <!-- Configuration Panel -->
           <div class="flex justify-end">
@@ -110,9 +107,6 @@ function updateIsMuted(isMuted: boolean) {
               :show-advanced-options="false"
               @update:config="(newConfig) => Object.assign(pianoConfig, newConfig)"
             />
-          </div>
-
-          <div class="mt-6">
             <ClientOnly>
               <sound-control-panel
                 v-if="audio"
@@ -136,7 +130,7 @@ function updateIsMuted(isMuted: boolean) {
 
           <!-- Interactive Piano -->
           <div>
-            <h3 class="text-lg font-semibold mb-2">
+            <!-- <h3 class="text-lg font-semibold mb-2">
               Interactive Piano ({{ pianoConfig.octaveRange }} octave{{ pianoConfig.octaveRange !== 1 ? 's' : '' }} starting from octave {{ pianoConfig.startOctave }})
             </h3>
             <div class="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
@@ -144,7 +138,7 @@ function updateIsMuted(isMuted: boolean) {
                 💡 <strong>How to use:</strong> Click on the piano area, then press keyboard keys to play!
                 Try pressing 'A' (C4), 'D' (E4), and 'G' (G4) to play a C major chord.
               </p>
-            </div>
+            </div> -->
             <piano-playground
               :octave-range="pianoConfig.octaveRange"
               :start-octave="pianoConfig.startOctave"

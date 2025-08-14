@@ -7,6 +7,11 @@ const props = defineProps<{
   lowLatency: boolean;
   instrument: "piano" | "polysynth" | "amsynth" | "fmsynth" | "membranesynth";
   enabled?: boolean;
+  // New MIDI props
+  isMidiSupported: boolean;
+  midiInputs: Array<{ id: string; name: string }>;
+  selectedMidiInputId: string;
+  midiError?: string;
 }>();
 
 const emit = defineEmits<{
@@ -17,6 +22,8 @@ const emit = defineEmits<{
   (e: "update:low-latency", val: boolean): void;
   (e: "update:instrument", val: "piano" | "polysynth" | "amsynth" | "fmsynth" | "membranesynth"): void;
   (e: "enable-audio"): void;
+  // New MIDI emit
+  (e: "update:midi-input", val: string): void;
 }>();
 
 function onMuteToggle() {
@@ -39,6 +46,10 @@ function onLatencyToggle() {
 function onInstrument(e: Event) {
   const t = e.target as HTMLSelectElement;
   emit("update:instrument", t.value as any);
+}
+function onMidiInputChange(e: Event) {
+  const t = e.target as HTMLSelectElement;
+  emit("update:midi-input", t.value);
 }
 </script>
 
@@ -194,6 +205,45 @@ function onInstrument(e: Event) {
                 <span class="label-text text-sm">Low Latency (mobile)</span>
               </label>
             </div>
+          </div>
+
+          <!-- MIDI Input Section -->
+          <div class="space-y-3">
+            <h4 class="text-sm font-medium text-base-content/70 uppercase tracking-wide">
+              MIDI Input
+            </h4>
+
+            <ClientOnly>
+              <div v-if="!isMidiSupported" class="text-sm text-warning">
+                MIDI not supported in this browser.
+              </div>
+              <div v-else>
+                <div v-if="midiInputs.length === 0" class="text-sm opacity-70">
+                  No MIDI devices detected.
+                </div>
+                <div v-else class="form-control">
+                  <label class="label">
+                    <span class="label-text text-sm">Device</span>
+                  </label>
+                  <select
+                    :value="selectedMidiInputId"
+                    class="select select-bordered select-sm w-full"
+                    @change="onMidiInputChange"
+                  >
+                    <option
+                      v-for="input in midiInputs"
+                      :key="input.id"
+                      :value="input.id"
+                    >
+                      {{ input.name }}
+                    </option>
+                  </select>
+                </div>
+                <p v-if="midiError" class="text-error text-xs mt-1">
+                  {{ midiError }}
+                </p>
+              </div>
+            </ClientOnly>
           </div>
         </div>
       </div>

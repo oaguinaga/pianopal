@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { onMounted } from "vue";
+
 import type { ColorMode, LabelStyle } from "~/types/piano";
 // Test data for piano component
 const activeNotes = ref<string[]>([]); // Active notes from keyboard/MIDI input
@@ -41,6 +43,40 @@ const highlightedNotes = computed(() => {
 const isClient = typeof window !== "undefined";
 const audio = isClient ? (await import("~/composables/use-audio-synth")).useAudioSynth() : null;
 const audioEnabled = computed(() => Boolean(audio?.audioInitialized.value));
+
+// MIDI state (moved from piano-playground)
+const isMidiSupported = ref(false);
+const midiInputs = ref<Array<{ id: string; name: string }>>([]);
+const selectedMidiInputId = ref<string>("");
+const midiError = ref<string>("");
+
+// Initialize MIDI support
+onMounted(async () => {
+  if (navigator.requestMIDIAccess) {
+    try {
+      const midiAccess = await navigator.requestMIDIAccess();
+      isMidiSupported.value = true;
+
+      const inputs = Array.from(midiAccess.inputs.values());
+      midiInputs.value = inputs.map(input => ({
+        id: input.id,
+        name: input.name || `MIDI Input ${input.id}`,
+      }));
+
+      if (inputs.length > 0) {
+        selectedMidiInputId.value = inputs[0].id;
+      }
+    }
+    catch (error) {
+      midiError.value = error instanceof Error ? error.message : "Failed to access MIDI";
+    }
+  }
+});
+
+function updateMidiInput(inputId: string) {
+  selectedMidiInputId.value = inputId;
+  // You can add additional MIDI input handling logic here
+}
 
 async function handleNoteOn(noteId: string, _source?: "keyboard" | "midi" | "ui") {
   if (!activeNotes.value.includes(noteId))
@@ -112,6 +148,10 @@ async function enableAudio() {
               :low-latency="audio.lowLatency.value"
               :instrument="audio.instrument.value"
               :enabled="audioEnabled"
+              :is-midi-supported="isMidiSupported"
+              :midi-inputs="midiInputs"
+              :selected-midi-input-id="selectedMidiInputId"
+              :midi-error="midiError"
               @enable-audio="enableAudio"
               @update:is-muted="audio.setMuted ? audio.setMuted($event) : ($event ? (audio.isMuted.value ? undefined : audio.toggleMute()) : (audio.isMuted.value ? audio.toggleMute() : undefined))"
               @update:volume-db="audio.setVolume($event)"
@@ -119,6 +159,7 @@ async function enableAudio() {
               @update:room-size="audio.setReverbRoomSize($event)"
               @update:low-latency="audio.setLowLatency($event)"
               @update:instrument="audio.setInstrument($event)"
+              @update:midi-input="updateMidiInput"
             />
           </div>
 

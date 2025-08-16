@@ -168,10 +168,27 @@ export function useMidi(config: MidiConfig) {
     detach();
   });
 
+  // Add a function to get current MIDI state
+  function getMidiState() {
+    return {
+      isMidiSupported: isMidiSupported.value,
+      midiInputs: midiInputs.value,
+      selectedMidiInputId: selectedMidiInputId.value,
+      midiError: midiError.value,
+    };
+  }
+
+  // Add a function to update MIDI input selection
+  function updateMidiInput(inputId: string) {
+    selectedMidiInputId.value = inputId;
+  }
+
   return {
     isMidiSupported,
     midiInputs,
     selectedMidiInputId,
     midiError,
+    getMidiState, // New: expose state getter
+    updateMidiInput, // New: expose update function
   };
 }

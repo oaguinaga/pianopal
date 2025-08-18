@@ -14,13 +14,23 @@ const authStore = useAuthStore();
           quasi. In deleniti eaque aut repudiandae et a id nisi.
         </p>
         <AuthButton v-if="!authStore.user" />
-        <NuxtLink
+        <div
           v-else
-          to="/playground"
-          class="btn btn-primary"
+          class="flex gap-2 justify-center"
         >
-          Playground
-        </NuxtLink>
+          <NuxtLink
+            to="/playground"
+            class="btn btn-primary"
+          >
+            Playground
+          </NuxtLink>
+          <NuxtLink
+            to="/piano-test"
+            class="btn btn-secondary"
+          >
+            Piano Test
+          </NuxtLink>
+        </div>
       </div>
     </div>
   </div>

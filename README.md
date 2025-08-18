@@ -66,3 +66,52 @@ Icons inherit the current text color by default and can be styled with Tailwind 
 ```vue
 <Icon name="hugeicons:heart" class="w-5 h-5 text-red-500 hover:text-red-600" />
 ```
+
+## 🧪 Testing
+
+This project uses multiple testing approaches for comprehensive quality assurance:
+
+### Unit Tests (Vitest)
+
+Run unit tests for utilities, composables, and components:
+
+```bash
+# Run all unit tests
+pnpm test:unit
+
+# Run unit tests with UI
+pnpm test:unit:ui
+
+# Run unit tests with coverage
+pnpm test:unit:coverage
+
+# Run unit tests in watch mode
+pnpm test:unit:watch
+```
+
+### Visual Tests (Playwright)
+
+Run end-to-end and visual regression tests:
+
+```bash
+# Run all visual tests
+pnpm test:visual
+
+# Run visual tests with UI
+pnpm test:visual:ui
+
+# Run visual tests in debug mode
+pnpm test:visual:debug
+```
+
+### Storybook
+
+Interactive component development and testing:
+
+```bash
+# Start Storybook
+pnpm storybook
+
+# Build Storybook
+pnpm build-storybook
+```

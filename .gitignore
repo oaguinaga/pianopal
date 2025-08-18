@@ -56,3 +56,6 @@ storybook-static
 tests/playwright-report/
 tests/test-results/
 tests/reports/
+
+# Coverage
+coverage/

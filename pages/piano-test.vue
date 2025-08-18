@@ -9,7 +9,7 @@ const activeNotes = ref<string[]>([]); // Active notes from keyboard/MIDI input
 // Piano configuration object
 const pianoConfig = reactive({
   octaveRange: 2,
-  startOctave: 3,
+  startOctave: 2,
   labelStyle: "letter" as LabelStyle,
   colorMode: "per-note" as ColorMode,
   showOctaveLabels: false,
@@ -79,9 +79,34 @@ async function handleNoteOff(noteId: string) {
 async function enableAudio() {
   if (!audio)
     return;
+
+  // Preserve current mute state
+  const wasMuted = audio.isMuted.value;
+
   await audio.startAudioContextIfNeeded();
   if (!audio.audioInitialized.value)
     await audio.initAudioChain();
+
+  // Restore mute state
+  if (wasMuted !== undefined)
+    audio.setMuted(wasMuted);
+}
+
+function updateIsMuted(isMuted: boolean) {
+  if (audio) {
+    if (audio.setMuted)
+      audio.setMuted(isMuted);
+    else
+      audio.isMuted.value = isMuted;
+  }
+}
+
+function toggleMute(event: Event) {
+  if (audio) {
+    const current = audio?.isMuted.value;
+    audio.setMuted(!current);
+    blurTargetOrActiveElementOnChange(event);
+  }
 }
 
 // Note playback is triggered directly in handleNoteOn/Off to ensure
@@ -92,7 +117,7 @@ async function enableAudio() {
   <div class="container mx-auto p-6 space-y-6">
     <div class="text-center">
       <h1 class="text-3xl font-bold mb-2">
-        Piano Test Playground
+        Piano Playground
       </h1>
       <p class="text-base-content/70">
         Interactive piano with keyboard input support
@@ -100,52 +125,72 @@ async function enableAudio() {
     </div>
 
     <!-- Piano Component Test -->
-    <div class="card bg-base-100 shadow-xl">
+    <div class="card bg-base-100 shadow-xl" data-theme="dark">
       <div class="card-body">
-        <h2 class="card-title">
-          PianoPlayground Component
-        </h2>
         <div class="space-y-6">
-          <!-- Configuration Panels -->
-          <div class="flex justify-end items-start gap-4">
-            <!-- Piano Configuration Panel -->
-            <piano-config-panel
-              :config="pianoConfig"
-              :show-octave-options="true"
-              :show-display-options="true"
-              :show-keyboard-options="true"
-              :show-advanced-options="true"
-              @update:config="(newConfig) => Object.assign(pianoConfig, newConfig)"
-            />
-
-            <!-- Sound Control Panel -->
-            <sound-control-panel
-              v-if="audio"
-              :is-muted="audio.isMuted.value"
-              :volume-db="audio.volumeDb.value"
-              :reverb-enabled="audio.reverbEnabled.value"
-              :room-size="audio.reverbRoomSize.value"
-              :low-latency="audio.lowLatency.value"
-              :instrument="audio.instrument.value"
-              :enabled="audioEnabled"
-              :is-midi-supported="isMidiSupported"
-              :midi-inputs="midiInputs"
-              :selected-midi-input-id="selectedMidiInputId"
-              :midi-error="midiError"
-              @enable-audio="enableAudio"
-              @update:is-muted="audio.setMuted ? audio.setMuted($event) : ($event ? (audio.isMuted.value ? undefined : audio.toggleMute()) : (audio.isMuted.value ? audio.toggleMute() : undefined))"
-              @update:volume-db="audio.setVolume($event)"
-              @update:reverb-enabled="audio.setReverbEnabled($event)"
-              @update:room-size="audio.setReverbRoomSize($event)"
-              @update:low-latency="audio.setLowLatency($event)"
-              @update:instrument="audio.setInstrument($event)"
-              @update:midi-input="updateMidiInput"
-            />
+          <!-- Configuration Panel -->
+          <div class="flex justify-end">
+            <!-- add a music off/on toggle here -->
+            <!-- <client-only> -->
+            <div class="form-control">
+              <label class="label cursor-pointer justify-start gap-3 text-base-content p-2">
+                <input
+                  type="checkbox"
+                  class="checkbox checkbox-sm hidden"
+                  :checked="audio?.isMuted.value"
+                  @change="toggleMute"
+                >
+                <Icon
+                  v-if="audio?.isMuted.value"
+                  name="hugeicons:volume-off"
+                  size="24"
+                />
+                <Icon
+                  v-else
+                  name="hugeicons:volume-high"
+                  size="24"
+                />
+              </label>
+            </div>
+            <client-only>
+              <piano-config-panel
+                :config="pianoConfig"
+                :show-octave-options="true"
+                :show-display-options="true"
+                :show-keyboard-options="true"
+                :show-advanced-options="false"
+                @update:config="(newConfig) => Object.assign(pianoConfig, newConfig)"
+              />
+            </client-only>
+            <client-only>
+              <sound-control-panel
+                v-if="audio"
+                :is-muted="audio.isMuted.value"
+                :volume-db="audio.volumeDb.value"
+                :reverb-enabled="audio.reverbEnabled.value"
+                :room-size="audio.reverbRoomSize.value"
+                :low-latency="audio.lowLatency.value"
+                :instrument="audio.instrument.value"
+                :enabled="audioEnabled"
+                :is-midi-supported="isMidiSupported"
+                :midi-inputs="midiInputs"
+                :selected-midi-input-id="selectedMidiInputId"
+                :midi-error="midiError"
+                @enable-audio="enableAudio"
+                @update:is-muted="updateIsMuted"
+                @update:volume-db="audio.setVolume($event)"
+                @update:reverb-enabled="audio.setReverbEnabled($event)"
+                @update:room-size="audio.setReverbRoomSize($event)"
+                @update:low-latency="audio.setLowLatency($event)"
+                @update:instrument="audio.setInstrument($event)"
+                @update:midi-input="updateMidiInput"
+              />
+            </client-only>
           </div>
 
           <!-- Interactive Piano -->
           <div>
-            <h3 class="text-lg font-semibold mb-2">
+            <!-- <h3 class="text-lg font-semibold mb-2">
               Interactive Piano ({{ pianoConfig.octaveRange }} octave{{ pianoConfig.octaveRange !== 1 ? 's' : '' }} starting from octave {{ pianoConfig.startOctave }})
             </h3>
             <div class="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
@@ -153,7 +198,7 @@ async function enableAudio() {
                 💡 <strong>How to use:</strong> Click on the piano area, then press keyboard keys to play!
                 Try pressing 'A' (C4), 'D' (E4), and 'G' (G4) to play a C major chord.
               </p>
-            </div>
+            </div> -->
             <piano-playground
               :octave-range="pianoConfig.octaveRange"
               :start-octave="pianoConfig.startOctave"

@@ -152,16 +152,16 @@ function toggleMute(event: Event) {
                 />
               </label>
             </div>
-            <!-- </client-only> -->
-
-            <piano-config-panel
-              :config="pianoConfig"
-              :show-octave-options="true"
-              :show-display-options="true"
-              :show-keyboard-options="true"
-              :show-advanced-options="false"
-              @update:config="(newConfig) => Object.assign(pianoConfig, newConfig)"
-            />
+            <client-only>
+              <piano-config-panel
+                :config="pianoConfig"
+                :show-octave-options="true"
+                :show-display-options="true"
+                :show-keyboard-options="true"
+                :show-advanced-options="false"
+                @update:config="(newConfig) => Object.assign(pianoConfig, newConfig)"
+              />
+            </client-only>
             <client-only>
               <sound-control-panel
                 v-if="audio"

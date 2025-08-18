@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { onMounted } from "vue";
-
 import type { ColorMode, LabelStyle } from "~/types/piano";
+
+import { useMidi } from "~/composables/use-midi";
+
 // Test data for piano component
 const activeNotes = ref<string[]>([]); // Active notes from keyboard/MIDI input
 
@@ -44,39 +45,18 @@ const isClient = typeof window !== "undefined";
 const audio = isClient ? (await import("~/composables/use-audio-synth")).useAudioSynth() : null;
 const audioEnabled = computed(() => Boolean(audio?.audioInitialized.value));
 
-// MIDI state (moved from piano-playground)
-const isMidiSupported = ref(false);
-const midiInputs = ref<Array<{ id: string; name: string }>>([]);
-const selectedMidiInputId = ref<string>("");
-const midiError = ref<string>("");
-
-// Initialize MIDI support
-onMounted(async () => {
-  if (navigator.requestMIDIAccess) {
-    try {
-      const midiAccess = await navigator.requestMIDIAccess();
-      isMidiSupported.value = true;
-
-      const inputs = Array.from(midiAccess.inputs.values());
-      midiInputs.value = inputs.map(input => ({
-        id: input.id,
-        name: input.name || `MIDI Input ${input.id}`,
-      }));
-
-      if (inputs.length > 0) {
-        selectedMidiInputId.value = inputs[0].id;
-      }
-    }
-    catch (error) {
-      midiError.value = error instanceof Error ? error.message : "Failed to access MIDI";
-    }
-  }
+// Use the useMidi composable instead of duplicate MIDI state
+const {
+  isMidiSupported,
+  midiInputs,
+  selectedMidiInputId,
+  midiError,
+  updateMidiInput,
+} = useMidi({
+  enabled: computed(() => pianoConfig.enableMidi),
+  onNoteOn: noteId => handleNoteOn(noteId, "midi"),
+  onNoteOff: handleNoteOff,
 });
-
-function updateMidiInput(inputId: string) {
-  selectedMidiInputId.value = inputId;
-  // You can add additional MIDI input handling logic here
-}
 
 async function handleNoteOn(noteId: string, _source?: "keyboard" | "midi" | "ui") {
   if (!activeNotes.value.includes(noteId))

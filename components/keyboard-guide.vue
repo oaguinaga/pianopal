@@ -2,6 +2,7 @@
 import { computed } from "vue";
 
 import { BLACK_KEY_COLOR_MAP, KEYBOARD_TO_PIANO_BLACK_MAP, KEYBOARD_TO_PIANO_WHITE_MAP, NOTE_COLOR_MAP } from "~/constants/piano";
+import { getNoteForKey } from "~/utils/piano-keyboard";
 
 // Type definitions for better type safety
 type KeyboardKeyWhite = keyof typeof KEYBOARD_TO_PIANO_WHITE_MAP;
@@ -17,7 +18,7 @@ type Emits = {
 type Props = {
   octaveRange?: number;
   visibleKeyboardMapping: Record<string, string>;
-  selectedOctaveIndex: number;
+  selectedOctaveIndex: number; // Make this required
   startOctave?: number;
 };
 
@@ -27,8 +28,13 @@ const props = withDefaults(defineProps<Props>(), {
 });
 
 const emit = defineEmits<Emits>();
+function handleOctaveClick(key: OctaveKey): void {
+  if (isOctaveActive(key)) {
+    const octaveIndex = getOctaveIndex(key);
+    emit("octave-change", octaveIndex);
+  }
+}
 
-// Static layout constants (outside setup to avoid recomputation)
 const KEYBOARD_ROWS = [
   ["q", "w", "e", "r", "t", "y", "u", "i", "o", "p"],
   ["a", "s", "d", "f", "g", "h", "j", "k", "l"],
@@ -43,12 +49,13 @@ const TAILWIND_CLASSES = {
   kbd: "kbd text-xs w-10 h-10 flex flex-col items-center justify-center font-mono font-bold transition-all duration-200 relative",
 
   // Octave key states
-  octaveActive: "bg-primary text-primary-content border-primary cursor-pointer",
-  octaveInactive: "bg-base-200 dark:bg-base-300 text-base-content dark:text-base-content cursor-not-allowed",
+  octave_selected: "bg-primary text-primary-content border-primary cursor-pointer",
+  octave_active: "bg-base-200 text-base-content border-base-200 cursor-pointer",
+  octave_disabled: "bg-base-100 text-base-content dark:text-base-content cursor-not-allowed",
 
   // Musical key states
-  musicalMapped: "cursor-help",
-  musicalUnmapped: "cursor-not-allowed",
+  musical_mapped: "cursor-help",
+  musical_unmapped: "cursor-not-allowed",
 
   // Default unmapped key
   unmapped: "bg-base-200 dark:bg-base-300",
@@ -91,27 +98,8 @@ function getMusicalKeyColor(key: string): string {
   return TAILWIND_CLASSES.unmapped;
 }
 
-/**
- * Gets the note name for a musical key
- * @param key - The keyboard key to get note name for
- * @returns The note name or empty string if unmapped
- */
-function getMusicalKeyNote(key: string): string {
-  const whiteKey = getWhiteKeyMapping(key);
-  if (whiteKey) {
-    return whiteKey.note;
-  }
-
-  const blackKey = getBlackKeyMapping(key);
-  if (blackKey) {
-    return blackKey.note;
-  }
-
-  return "";
-}
-
 function isMusicalKey(key: string): key is MusicalKey {
-  return getMusicalKeyNote(key) !== "";
+  return props.visibleKeyboardMapping[key] !== undefined;
 }
 
 function getOctaveIndex(key: OctaveKey): number {
@@ -129,15 +117,18 @@ function getOctaveLabel(key: OctaveKey): string {
 }
 
 function getOctaveKeyClasses(key: OctaveKey): string[] {
-  if (isOctaveActive(key)) {
-    return [TAILWIND_CLASSES.octaveActive];
+  if (getOctaveIndex(key) === props.selectedOctaveIndex) {
+    return [TAILWIND_CLASSES.octave_selected];
   }
-  return [TAILWIND_CLASSES.octaveInactive];
+  if (isOctaveActive(key)) {
+    return [TAILWIND_CLASSES.octave_active];
+  }
+  return [TAILWIND_CLASSES.octave_disabled];
 }
 
 function getMusicalKeyClasses(key: string): string[] {
   const colorClass = getMusicalKeyColor(key);
-  const cursorClass = isMusicalKey(key) ? TAILWIND_CLASSES.musicalMapped : TAILWIND_CLASSES.musicalUnmapped;
+  const cursorClass = isMusicalKey(key) ? TAILWIND_CLASSES.musical_mapped : TAILWIND_CLASSES.musical_unmapped;
 
   return [colorClass, cursorClass];
 }
@@ -147,7 +138,8 @@ function getOctaveTooltip(key: OctaveKey): string {
 }
 
 function getMusicalKeyTooltip(key: string): string {
-  const noteName = getMusicalKeyNote(key);
+  const octave = (props.selectedOctaveIndex ?? 0) + props.startOctave; // Fix operator precedence
+  const noteName = getNoteForKey(key, octave);
   return noteName ? `Note: ${noteName}` : "";
 }
 
@@ -186,8 +178,8 @@ const musicalKeyClassMap = computed(() => {
         >
           <div class="tooltip" :data-tip="getOctaveTooltip(key)">
             <kbd
-              :class="[TAILWIND_CLASSES.kbd, octaveKeyClassMap[key]]"
-              @click="isOctaveActive(key) ? emit('octave-change', getOctaveIndex(key)) : undefined"
+              :class="[TAILWIND_CLASSES.kbd, ...octaveKeyClassMap[key]]"
+              @click="handleOctaveClick(key)"
             >
               <!-- Octave number -->
               <span class="text-xs leading-none">

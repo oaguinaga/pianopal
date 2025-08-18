@@ -11,15 +11,12 @@
  */
 import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 
-import type { KeyboardKeyBlack, KeyboardKeyWhite, UseKeyboardPianoConfig } from "~/types/piano";
+import type { UseKeyboardPianoConfig } from "~/types/piano";
 
 import { KEYBOARD_TO_PIANO_BLACK_MAP, KEYBOARD_TO_PIANO_WHITE_MAP } from "~/constants/piano";
+import { getNoteForKey } from "~/utils/piano-keyboard";
 
 export function useKeyboardPiano(config: UseKeyboardPianoConfig) {
-  // Local boundaries for octave math when mapping keys → notes
-  const MIN_OCTAVE_INDEX = 0;
-  const MAX_OCTAVE_INDEX = 8;
-
   const activeNotes = ref<string[]>([]);
   const pressedKeys = ref<Set<string>>(new Set());
   const isKeyboardBlocked = ref(false);
@@ -47,28 +44,6 @@ export function useKeyboardPiano(config: UseKeyboardPianoConfig) {
   // Helpers
   function isNumberKey(key: string): boolean {
     return /^[1-9]$/.test(key);
-  }
-
-  function withinOctaveBounds(octave: number): boolean {
-    return octave >= MIN_OCTAVE_INDEX && octave <= MAX_OCTAVE_INDEX;
-  }
-
-  function getNoteForKey(key: string, baseOctave: number): string | undefined {
-    const lower = key.toLowerCase() as KeyboardKeyWhite | KeyboardKeyBlack | string;
-    if (lower in KEYBOARD_TO_PIANO_WHITE_MAP) {
-      const { note, deltaOctave = 0 } = KEYBOARD_TO_PIANO_WHITE_MAP[lower as KeyboardKeyWhite];
-      const octave = baseOctave + deltaOctave;
-      if (!withinOctaveBounds(octave))
-        return undefined;
-      return `${note}${octave}`;
-    }
-    if (lower in KEYBOARD_TO_PIANO_BLACK_MAP) {
-      const { note } = KEYBOARD_TO_PIANO_BLACK_MAP[lower as KeyboardKeyBlack];
-      if (!withinOctaveBounds(baseOctave))
-        return undefined;
-      return `${note}${baseOctave}`;
-    }
-    return undefined;
   }
 
   // Keyboard guide mapping for current selected octave
@@ -218,5 +193,6 @@ export function useKeyboardPiano(config: UseKeyboardPianoConfig) {
     visibleKeyboardMapping,
     isKeyboardBlocked,
     // handlers (intentionally not exported; handled globally)
+    handleOctaveSelection,
   };
 }

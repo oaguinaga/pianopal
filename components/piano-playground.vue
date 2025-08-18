@@ -44,6 +44,11 @@ const {
   getRootEl: () => pianoRef.value ?? null,
 });
 
+function handleOctaveChange(octaveIndex: number) {
+  selectedOctaveIndex.value = octaveIndex;
+  emit("selected-octave-change", octaveIndex);
+}
+
 watch(selectedOctaveIndex, (idx) => {
   emit("selected-octave-change", idx);
 });
@@ -145,9 +150,9 @@ watch(audioEnabled, (enabled) => {
       v-if="showKeyboardGuide"
       :octave-range="octaveRange"
       :visible-keyboard-mapping="visibleKeyboardMapping"
-      :selected-octave-index="selectedOctaveIndex"
       :start-octave="startOctave"
-      @octave-change="selectedOctaveIndex = $event"
+      :selected-octave-index="selectedOctaveIndex"
+      @octave-change="handleOctaveChange"
     />
   </div>
 </template>

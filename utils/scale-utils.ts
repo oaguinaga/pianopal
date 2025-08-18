@@ -12,7 +12,6 @@ import {
   AVAILABLE_ROOT_NOTES,
   AVAILABLE_SCALE_TYPES,
   METRONOME_CONFIG,
-  SCALE_DEFINITIONS,
   SCALE_GENERATION,
 } from "~/constants/scale";
 
@@ -298,7 +297,7 @@ export function validateScaleConfig(config: ScalePracticeConfig): ValidationResu
   }
 
   // Validate scale type
-  if (!Object.keys(SCALE_DEFINITIONS).includes(config.scale)) {
+  if (!AVAILABLE_SCALE_TYPES.includes(config.scale as ScaleType)) {
     errors.push(`Invalid scale type: ${config.scale}`);
   }
 

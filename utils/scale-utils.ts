@@ -8,12 +8,11 @@ import type {
   ValidationResult,
 } from "~/types/scale";
 
+import { DEFAULT_OCTAVE, DEFAULT_OCTAVE_RANGE } from "~/constants/piano";
 import {
   AVAILABLE_ROOT_NOTES,
   AVAILABLE_SCALE_TYPES,
   METRONOME_CONFIG,
-  SCALE_DEFINITIONS,
-  SCALE_GENERATION,
 } from "~/constants/scale";
 
 // ============================================================================
@@ -75,46 +74,57 @@ export function generateScale(root: string, type: ScaleType): string[] {
 }
 
 /**
- * Get scale notes with metadata (octave, MIDI, degree)
- * @param root - Root note
- * @param type - Scale type
+ * Get scale notes with metadata (octave, MIDI, degree).
+ * Handles correct octave assignment starting from a given octave.
+ *
+ * @param root - Root note (e.g. "F")
+ * @param type - Scale type (e.g. "major")
  * @param startOctave - Starting octave (default: 4)
  * @returns Array of ScaleNote objects
  */
 export function getScaleNotes(
   root: string,
   type: ScaleType,
-  startOctave: number = SCALE_GENERATION.DEFAULT_OCTAVE,
+  startOctave: number = DEFAULT_OCTAVE,
 ): ScaleNote[] {
-  const notes = generateScale(root, type);
-  if (!notes.length)
+  const scaleNotes = generateScale(root, type);
+  if (scaleNotes.length === 0)
     return [];
 
-  return notes.map((note, index) => {
-    // Calculate the relative position of the note in the scale
-    // C is at position 0, D is at position 1, etc.
-    const noteIndex = AVAILABLE_ROOT_NOTES.indexOf(note);
-    if (noteIndex === -1) {
-      // Fallback: use the index in the scale
-      const relativeOctave = Math.floor(index / 7);
-      return {
-        note,
-        octave: startOctave + relativeOctave,
-        midi: Note.midi(`${note}${startOctave + relativeOctave}`) || 0,
-        degree: index + 1,
-        isRoot: index === 0,
-      };
+  const rootNote = scaleNotes[0];
+
+  /**
+   * Determine the correct octave for a given note relative to the root.
+   */
+  function resolveOctave(note: string, index: number): number {
+    if (index === 0)
+      return startOctave;
+
+    const rootMidi = Note.midi(`${rootNote}${startOctave}`);
+    const currentMidi = Note.midi(`${note}${startOctave}`);
+
+    if (rootMidi && currentMidi) {
+      // If the note would be lower than the root in the same octave, bump it up
+      return currentMidi < rootMidi ? startOctave + 1 : startOctave;
     }
 
-    // Calculate octave based on the note's position relative to the root
-    const rootIndex = AVAILABLE_ROOT_NOTES.indexOf(notes[0]);
-    const relativePosition = noteIndex - rootIndex;
-    const relativeOctave = Math.floor(relativePosition / 12);
+    // Fallback: compare positions in chromatic scale
+    const rootIndex = AVAILABLE_ROOT_NOTES.indexOf(rootNote);
+    const noteIndex = AVAILABLE_ROOT_NOTES.indexOf(note);
 
+    if (rootIndex !== -1 && noteIndex !== -1 && noteIndex < rootIndex) {
+      return startOctave + 1;
+    }
+
+    return startOctave;
+  }
+
+  return scaleNotes.map((note, index) => {
+    const octave = resolveOctave(note, index);
     return {
       note,
-      octave: startOctave + relativeOctave,
-      midi: Note.midi(`${note}${startOctave + relativeOctave}`) || 0,
+      octave,
+      midi: Note.midi(`${note}${octave}`) || 0,
       degree: index + 1,
       isRoot: index === 0,
     };
@@ -164,8 +174,8 @@ export function transposeScale(notes: string[], semitones: number): string[] {
 export function getMultiOctaveScale(
   root: string,
   type: ScaleType,
-  octaveRange: number = SCALE_GENERATION.DEFAULT_OCTAVE_RANGE,
-  startOctave: number = SCALE_GENERATION.DEFAULT_OCTAVE,
+  octaveRange: number = DEFAULT_OCTAVE_RANGE,
+  startOctave: number = DEFAULT_OCTAVE,
 ): ScaleNote[] {
   const notes: ScaleNote[] = [];
 
@@ -193,7 +203,7 @@ export function getPracticeScaleNotes(
   root: string,
   type: ScaleType,
   mode: PracticeMode,
-  startOctave: number = SCALE_GENERATION.DEFAULT_OCTAVE,
+  startOctave: number = DEFAULT_OCTAVE,
 ): ScaleNote[] {
   const notes = getScaleNotes(root, type, startOctave);
 
@@ -298,7 +308,7 @@ export function validateScaleConfig(config: ScalePracticeConfig): ValidationResu
   }
 
   // Validate scale type
-  if (!Object.keys(SCALE_DEFINITIONS).includes(config.scale)) {
+  if (!AVAILABLE_SCALE_TYPES.includes(config.scale as ScaleType)) {
     errors.push(`Invalid scale type: ${config.scale}`);
   }
 

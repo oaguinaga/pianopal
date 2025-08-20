@@ -1,15 +1,21 @@
 <script setup lang="ts">
+import { computed, reactive, ref } from "vue";
+
 import type { ColorMode, LabelStyle } from "~/types/piano";
 
 import { useMidi } from "~/composables/use-midi";
+import { DEFAULT_OCTAVE, DEFAULT_OCTAVE_RANGE } from "~/constants/piano";
+import { useScalePracticeStore } from "~/stores/scale-practice";
+import { blurTargetOrActiveElementOnChange } from "~/utils/dom";
+import { getScaleNotes } from "~/utils/scale-utils";
 
 // Test data for piano component
 const activeNotes = ref<string[]>([]); // Active notes from keyboard/MIDI input
 
 // Piano configuration object
 const pianoConfig = reactive({
-  octaveRange: 2,
-  startOctave: 2,
+  octaveRange: DEFAULT_OCTAVE_RANGE,
+  startOctave: DEFAULT_OCTAVE,
   labelStyle: "letter" as LabelStyle,
   colorMode: "per-note" as ColorMode,
   showOctaveLabels: false,
@@ -25,20 +31,26 @@ function onSelectedOctaveChange(idx: number) {
   selectedOctaveIndexFromChild.value = idx;
 }
 
-const selectedOctaveForHighlights = computed(() => pianoConfig.startOctave + selectedOctaveIndexFromChild.value);
+// Use the scale practice store
+const scalePracticeStore = useScalePracticeStore();
 
+// Update highlightedNotes to use scale practice notes from store
 const highlightedNotes = computed(() => {
-  const octave = selectedOctaveForHighlights.value;
-  return [
-    `C${octave}`,
-    `E${octave}`,
-    `G${octave}`,
-    `B${octave}`,
-    `Eb${octave}`,
-    `F#${octave}`,
-    `Bb${octave}`,
-    `C#${octave}`,
-  ];
+  // If we have an active scale practice session, highlight those notes
+  if (scalePracticeStore.sessionState !== "idle" && scalePracticeStore.currentScale) {
+    // Map scale notes to the format expected by the piano component
+    const notes = scalePracticeStore.currentScale.notes.map((note) => {
+      return `${note.note}${note.octave}`;
+    });
+
+    return notes;
+  }
+
+  // I want the fallback to be the c scale notes
+  const C_SCALE_NOTES = getScaleNotes("C", "major");
+  return C_SCALE_NOTES.map((note) => {
+    return `${note.note}${note.octave}`;
+  });
 });
 
 const isClient = typeof window !== "undefined";
@@ -57,6 +69,8 @@ const {
   onNoteOn: noteId => handleNoteOn(noteId, "midi"),
   onNoteOff: handleNoteOff,
 });
+
+// No more wrapper functions needed - store actions are called directly in template
 
 async function handleNoteOn(noteId: string, _source?: "keyboard" | "midi" | "ui") {
   if (!activeNotes.value.includes(noteId))
@@ -216,6 +230,77 @@ function toggleMute(event: Event) {
               @enable-audio="enableAudio"
               @selected-octave-change="onSelectedOctaveChange"
             />
+          </div>
+
+          <!-- Scale Practice Components -->
+          <div class="mt-8 space-y-6">
+            <h3 class="text-lg font-semibold text-base-content">
+              🎼 Scale Practice Mode
+            </h3>
+
+            <!-- Scale Selection Component -->
+            <div class="card bg-base-200 shadow-lg">
+              <div class="card-body">
+                <scale-selection
+                  :selected-root="scalePracticeStore.practiceSettings.root"
+                  :selected-scale-type="scalePracticeStore.practiceSettings.scale"
+                  :selected-tempo="scalePracticeStore.practiceSettings.bpm"
+                  @root-change="scalePracticeStore.handleRootChange"
+                  @scale-type-change="scalePracticeStore.handleScaleTypeChange"
+                  @tempo-change="scalePracticeStore.handleTempoChange"
+                  @start-practice="scalePracticeStore.handleStartPractice"
+                />
+              </div>
+            </div>
+
+            <!-- Scale Practice Session (when active) -->
+            <div v-if="scalePracticeStore.sessionState !== 'idle'" class="card bg-base-200 shadow-lg">
+              <div class="card-body">
+                <h4 class="card-title text-center">
+                  🎵 Practice Session: {{ scalePracticeStore.practiceSettings.root }} {{ scalePracticeStore.practiceSettings.scale }} Scale
+                </h4>
+
+                <div class="text-center space-y-4">
+                  <p class="text-lg">
+                    <strong>Current Scale:</strong> {{ scalePracticeStore.practiceSettings.root }} {{ scalePracticeStore.practiceSettings.scale }}
+                  </p>
+                  <p class="text-lg">
+                    <strong>Tempo:</strong> {{ scalePracticeStore.practiceSettings.bpm }} BPM
+                  </p>
+
+                  <!-- Scale Notes Display -->
+                  <div v-if="scalePracticeStore.currentScale && scalePracticeStore.currentScale.notes.length > 0" class="p-4 bg-base-100 rounded-box">
+                    <h5 class="font-medium text-base-content mb-3">
+                      Scale Notes (Highlighted on Piano):
+                    </h5>
+                    <div class="flex flex-wrap justify-center gap-2">
+                      <span
+                        v-for="(note, index) in scalePracticeStore.currentScale!.notes"
+                        :key="`${note.note}${note.octave}`"
+                        class="badge badge-primary badge-lg"
+                      >
+                        {{ note.note }}{{ note.octave }}
+                        <span class="ml-2 text-xs opacity-70">({{ index + 1 }})</span>
+                      </span>
+                    </div>
+                  </div>
+
+                  <p class="text-sm text-base-content/70">
+                    💡 Use the piano above to practice! The scale notes will be highlighted on the piano keys.
+                  </p>
+                </div>
+
+                <!-- Practice Controls -->
+                <div class="flex justify-center gap-4 mt-6">
+                  <button
+                    class="btn btn-error"
+                    @click="scalePracticeStore.resetPracticeToDefaults"
+                  >
+                    Stop Practice
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>

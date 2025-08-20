@@ -7,5 +7,13 @@ export default {
     "./plugins/**/*.{js,ts}",
     "./app.vue",
     "./error.vue",
+    "./nuxt.config.{js,ts}",
+    "./tailwind.config.{js,ts}",
   ],
+  plugins: [
+    require("daisyui"),
+  ],
+  daisyui: {
+    themes: ["light", "dark"],
+  },
 };

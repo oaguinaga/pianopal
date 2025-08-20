@@ -154,7 +154,7 @@ describe("scale Utilities", () => {
         scale: "major",
         bpm: 120,
         metronome: {
-          visualMode: "noteName" as const,
+          visualMode: "note-name" as const,
           sound: true,
         },
         practiceMode: "ascending" as PracticeMode,
@@ -172,7 +172,7 @@ describe("scale Utilities", () => {
         scale: "major",
         bpm: 120,
         metronome: {
-          visualMode: "noteName" as const,
+          visualMode: "note-name" as const,
           sound: true,
         },
         practiceMode: "ascending" as PracticeMode,
@@ -190,7 +190,7 @@ describe("scale Utilities", () => {
         scale: "invalid",
         bpm: 120,
         metronome: {
-          visualMode: "noteName" as const,
+          visualMode: "note-name" as const,
           sound: true,
         },
         practiceMode: "ascending" as PracticeMode,
@@ -208,7 +208,7 @@ describe("scale Utilities", () => {
         scale: "major",
         bpm: 30, // Too slow
         metronome: {
-          visualMode: "noteName" as const,
+          visualMode: "note-name" as const,
           sound: true,
         },
         practiceMode: "ascending" as PracticeMode,

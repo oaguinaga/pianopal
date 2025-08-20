@@ -1,7 +1,9 @@
+import vue from "@vitejs/plugin-vue";
 import { resolve } from "node:path";
 import { defineConfig } from "vitest/config";
 
 export default defineConfig({
+  plugins: [vue()],
   test: {
     // Test discovery patterns
     include: [
@@ -17,11 +19,11 @@ export default defineConfig({
       "**/.git/**",
     ],
 
-    // Environment setup
-    environment: "node",
+    // Environment setup - use jsdom for Vue components, node for utilities
+    environment: "jsdom",
     environmentOptions: {
-      node: {
-        // Node environment for utility testing
+      jsdom: {
+        // JSDOM environment for Vue component testing
       },
     },
 

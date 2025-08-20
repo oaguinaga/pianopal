@@ -25,7 +25,7 @@ const authStore = useAuthStore();
             Playground
           </NuxtLink>
           <NuxtLink
-            to="/piano-test"
+            to="/test-playground"
             class="btn btn-secondary"
           >
             Piano Test

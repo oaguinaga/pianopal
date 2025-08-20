@@ -21,6 +21,9 @@ export const MAX_OCTAVES = 7;
 export const WHITE_KEYS_PER_OCTAVE = 7;
 export const BLACK_KEYS_PER_OCTAVE = 5;
 export const SEMITONES_PER_OCTAVE = 12;
+export const DEFAULT_OCTAVE = 4;
+export const DEFAULT_OCTAVE_RANGE = 2;
+export const MIDI_C4 = 60; // Middle C
 
 // Black key positioning mapping within each octave
 export const BLACK_KEY_MAPPING = {

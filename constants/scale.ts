@@ -41,13 +41,6 @@ export const METRONOME_CONFIG = {
   },
 } as const;
 
-// Scale generation constants
-export const SCALE_GENERATION = {
-  DEFAULT_OCTAVE: 4,
-  DEFAULT_OCTAVE_RANGE: 2,
-  MIDI_C4: 60, // Middle C
-} as const;
-
 export const DEFAULT_SCALE_SETTINGS = {
   displayPreferences: {
     showNoteNames: true,

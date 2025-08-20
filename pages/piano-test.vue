@@ -5,6 +5,7 @@ import type { ColorMode, LabelStyle } from "~/types/piano";
 
 import { useMidi } from "~/composables/use-midi";
 import { DEFAULT_OCTAVE, DEFAULT_OCTAVE_RANGE } from "~/constants/piano";
+import { useScalePracticeStore } from "~/stores/scale-practice";
 import { blurTargetOrActiveElementOnChange } from "~/utils/dom";
 import { getScaleNotes } from "~/utils/scale-utils";
 
@@ -30,22 +31,15 @@ function onSelectedOctaveChange(idx: number) {
   selectedOctaveIndexFromChild.value = idx;
 }
 
-// Scale Practice State
-const scalePracticeState = reactive({
-  selectedRoot: "C",
-  selectedScaleType: "major" as const,
-  selectedTempo: 120,
-  isVisible: false,
-  scaleNotes: [] as any[],
-  sessionState: "idle" as "idle" | "count-in" | "playing" | "grading",
-});
+// Use the scale practice store
+const scalePracticeStore = useScalePracticeStore();
 
-// Update highlightedNotes to use scale practice notes
+// Update highlightedNotes to use scale practice notes from store
 const highlightedNotes = computed(() => {
   // If we have an active scale practice session, highlight those notes
-  if (scalePracticeState.isVisible && scalePracticeState.scaleNotes.length > 0) {
+  if (scalePracticeStore.sessionState !== "idle" && scalePracticeStore.currentScale) {
     // Map scale notes to the format expected by the piano component
-    const notes = scalePracticeState.scaleNotes.map((note) => {
+    const notes = scalePracticeStore.currentScale.notes.map((note) => {
       return `${note.note}${note.octave}`;
     });
 
@@ -76,56 +70,7 @@ const {
   onNoteOff: handleNoteOff,
 });
 
-// Scale Practice Event Handlers
-function handleRootChange(root: string) {
-  scalePracticeState.selectedRoot = root;
-  if (scalePracticeState.isVisible) {
-    generateScaleNotes();
-  }
-}
-
-function handleScaleTypeChange(scaleType: string) {
-  scalePracticeState.selectedScaleType = scaleType as any;
-  if (scalePracticeState.isVisible) {
-    generateScaleNotes();
-  }
-}
-
-function handleTempoChange(tempo: number) {
-  scalePracticeState.selectedTempo = tempo;
-}
-
-function handleStartPractice() {
-  scalePracticeState.isVisible = true;
-  generateScaleNotes();
-  scalePracticeState.sessionState = "count-in";
-}
-
-function generateScaleNotes() {
-  if (!scalePracticeState.selectedRoot || !scalePracticeState.selectedScaleType) {
-    scalePracticeState.scaleNotes = [];
-    return;
-  }
-
-  try {
-    const notes = getScaleNotes(scalePracticeState.selectedRoot, scalePracticeState.selectedScaleType);
-
-    scalePracticeState.scaleNotes = notes;
-  }
-  catch (error) {
-    console.error("Error generating scale:", error);
-    scalePracticeState.scaleNotes = [];
-  }
-}
-
-function resetPractice() {
-  scalePracticeState.selectedRoot = "C";
-  scalePracticeState.selectedScaleType = "major";
-  scalePracticeState.selectedTempo = 120;
-  scalePracticeState.isVisible = false;
-  scalePracticeState.scaleNotes = [];
-  scalePracticeState.sessionState = "idle";
-}
+// No more wrapper functions needed - store actions are called directly in template
 
 async function handleNoteOn(noteId: string, _source?: "keyboard" | "midi" | "ui") {
   if (!activeNotes.value.includes(noteId))
@@ -297,40 +242,40 @@ function toggleMute(event: Event) {
             <div class="card bg-base-200 shadow-lg">
               <div class="card-body">
                 <scale-selection
-                  :selected-root="scalePracticeState.selectedRoot"
-                  :selected-scale-type="scalePracticeState.selectedScaleType"
-                  :selected-tempo="scalePracticeState.selectedTempo"
-                  @root-change="handleRootChange"
-                  @scale-type-change="handleScaleTypeChange"
-                  @tempo-change="handleTempoChange"
-                  @start-practice="handleStartPractice"
+                  :selected-root="scalePracticeStore.practiceSettings.root"
+                  :selected-scale-type="scalePracticeStore.practiceSettings.scale"
+                  :selected-tempo="scalePracticeStore.practiceSettings.bpm"
+                  @root-change="scalePracticeStore.handleRootChange"
+                  @scale-type-change="scalePracticeStore.handleScaleTypeChange"
+                  @tempo-change="scalePracticeStore.handleTempoChange"
+                  @start-practice="scalePracticeStore.handleStartPractice"
                 />
               </div>
             </div>
 
             <!-- Scale Practice Session (when active) -->
-            <div v-if="scalePracticeState.isVisible" class="card bg-base-200 shadow-lg">
+            <div v-if="scalePracticeStore.sessionState !== 'idle'" class="card bg-base-200 shadow-lg">
               <div class="card-body">
                 <h4 class="card-title text-center">
-                  🎵 Practice Session: {{ scalePracticeState.selectedRoot }} {{ scalePracticeState.selectedScaleType }} Scale
+                  🎵 Practice Session: {{ scalePracticeStore.practiceSettings.root }} {{ scalePracticeStore.practiceSettings.scale }} Scale
                 </h4>
 
                 <div class="text-center space-y-4">
                   <p class="text-lg">
-                    <strong>Current Scale:</strong> {{ scalePracticeState.selectedRoot }} {{ scalePracticeState.selectedScaleType }}
+                    <strong>Current Scale:</strong> {{ scalePracticeStore.practiceSettings.root }} {{ scalePracticeStore.practiceSettings.scale }}
                   </p>
                   <p class="text-lg">
-                    <strong>Tempo:</strong> {{ scalePracticeState.selectedTempo }} BPM
+                    <strong>Tempo:</strong> {{ scalePracticeStore.practiceSettings.bpm }} BPM
                   </p>
 
                   <!-- Scale Notes Display -->
-                  <div v-if="scalePracticeState.scaleNotes.length > 0" class="p-4 bg-base-100 rounded-box">
+                  <div v-if="scalePracticeStore.currentScale && scalePracticeStore.currentScale.notes.length > 0" class="p-4 bg-base-100 rounded-box">
                     <h5 class="font-medium text-base-content mb-3">
                       Scale Notes (Highlighted on Piano):
                     </h5>
                     <div class="flex flex-wrap justify-center gap-2">
                       <span
-                        v-for="(note, index) in scalePracticeState.scaleNotes"
+                        v-for="(note, index) in scalePracticeStore.currentScale!.notes"
                         :key="`${note.note}${note.octave}`"
                         class="badge badge-primary badge-lg"
                       >
@@ -349,7 +294,7 @@ function toggleMute(event: Event) {
                 <div class="flex justify-center gap-4 mt-6">
                   <button
                     class="btn btn-error"
-                    @click="resetPractice"
+                    @click="scalePracticeStore.resetPracticeToDefaults"
                   >
                     Stop Practice
                   </button>

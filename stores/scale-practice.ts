@@ -7,6 +7,7 @@ import type {
   Scale,
   ScalePracticeSession,
   ScaleSettings,
+  ScaleType,
 } from "~/types/scale";
 
 import {
@@ -213,6 +214,84 @@ export const useScalePracticeStore = defineStore("scalePractice", () => {
     currentNoteIndex.value = index;
   };
 
+  // ============================================================================
+  // SCALE PRACTICE EVENT HANDLERS (extracted from piano-test.vue)
+  // ============================================================================
+
+  // Handle root note change
+  const handleRootChange = (root: string) => {
+    practiceSettings.value.root = root;
+
+    // If we have an active session, regenerate scale notes
+    if (currentSession.value && practiceSettings.value.scale) {
+      const scaleNotes = getScaleNotes(root, practiceSettings.value.scale, 4);
+      currentSession.value.scale.notes = scaleNotes;
+    }
+  };
+
+  // Handle scale type change
+  const handleScaleTypeChange = (scaleType: ScaleType) => {
+    practiceSettings.value.scale = scaleType;
+
+    // If we have an active session, regenerate scale notes
+    if (currentSession.value && practiceSettings.value.root) {
+      const scaleNotes = getScaleNotes(practiceSettings.value.root, scaleType, 4);
+      currentSession.value.scale.notes = scaleNotes;
+    }
+  };
+
+  // Handle tempo change
+  const handleTempoChange = (tempo: number) => {
+    practiceSettings.value.bpm = tempo;
+
+    // Update current session tempo if active
+    if (currentSession.value) {
+      currentSession.value.tempo = tempo;
+      currentSession.value.config.bpm = tempo;
+    }
+  };
+
+  // Handle start practice with current settings
+  const handleStartPractice = () => {
+    const { root, scale, bpm } = practiceSettings.value;
+
+    if (!root || !scale) {
+      console.warn("Cannot start practice: missing root or scale type");
+      return;
+    }
+
+    // Generate scale notes
+    const scaleNotes = getScaleNotes(root, scale, 4);
+    const scaleData: Scale = { root, type: scale, notes: scaleNotes };
+
+    // Create and start session
+    selectScale(scaleData, { tempo: bpm });
+    startPractice();
+  };
+
+  // Generate scale notes for current settings (for highlighting)
+  const generateScaleNotes = () => {
+    const { root, scale } = practiceSettings.value;
+
+    if (!root || !scale) {
+      return [];
+    }
+
+    try {
+      return getScaleNotes(root, scale, 4);
+    }
+    catch (error) {
+      console.error("Error generating scale:", error);
+      return [];
+    }
+  };
+
+  // Reset practice to default settings
+  const resetPracticeToDefaults = () => {
+    practiceSettings.value = { ...DEFAULT_SCALE_SETTINGS };
+    resetPractice();
+  };
+
   return {
     // State
     currentSession,
@@ -238,5 +317,13 @@ export const useScalePracticeStore = defineStore("scalePractice", () => {
     updatePracticeSettings,
     resetPractice,
     goToNote,
+
+    // Scale Practice Event Handlers
+    handleRootChange,
+    handleScaleTypeChange,
+    handleTempoChange,
+    handleStartPractice,
+    generateScaleNotes,
+    resetPracticeToDefaults,
   };
 });

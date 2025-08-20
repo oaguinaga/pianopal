@@ -42,6 +42,11 @@ export const METRONOME_CONFIG = {
 } as const;
 
 export const DEFAULT_SCALE_SETTINGS = {
+  // Basic scale selection defaults
+  root: "C",
+  scale: "major",
+  bpm: METRONOME_CONFIG.DEFAULT_BPM,
+
   displayPreferences: {
     showNoteNames: true,
     showScaleDegrees: true,

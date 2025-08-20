@@ -70,6 +70,10 @@ export type ScalePracticeSession = {
 };
 
 export type ScaleSettings = {
+  root: string;
+  scale: ScaleType;
+  bpm: number;
+
   displayPreferences: {
     showNoteNames: boolean;
     showScaleDegrees: boolean;

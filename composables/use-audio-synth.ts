@@ -1,17 +1,14 @@
-import { onUnmounted, ref } from "vue";
+import { ref } from "vue";
+
+import type { AudioEngine, AudioSettings, InstrumentId } from "~/types/playground-audio";
 
 import { useClientModule } from "~/composables/use-client-module";
+import { DEFAULT_REVERB_ROOM_SIZE, DEFAULT_VOLUME_DB, LOOKAHEAD_LOW, LOOKAHEAD_NORMAL } from "~/constants/audio";
 import { PIANO_SALAMANDER_MAP, SALAMANDER_BASE_URL } from "~/constants/piano";
 
-/**
- * Identifier for available instruments.
- * - "piano" uses a Sampler with Salamander samples
- * - others are PolySynth wrappers with gentle defaults
- */
-type InstrumentId = "piano" | "polysynth" | "amsynth" | "fmsynth" | "membranesynth";
-
-export function useAudioSynth() {
+export function useAudioSynth(initialSettings?: Partial<AudioSettings>): AudioEngine {
   const isClient = typeof window !== "undefined" && typeof document !== "undefined";
+  const isSupported = ref(isClient && (!!window.AudioContext || !!(window as any).webkitAudioContext));
 
   // SSR-safe Tone loader
   const ToneRef = ref<any>(null);
@@ -19,23 +16,19 @@ export function useAudioSynth() {
 
   // State
   const audioInitialized = ref(false);
-  const isMuted = ref(false);
-  // Fixed configuration constants (UPPER_SNAKE_CASE)
-  const DEFAULT_VOLUME_DB = -10; // headroom for stacked voices
-  const DEFAULT_REVERB_ROOM_SIZE = 0.8;
-  const LOOKAHEAD_LOW = 0.005 as const;
-  const LOOKAHEAD_NORMAL = 0.05 as const;
-
-  const volumeDb = ref(DEFAULT_VOLUME_DB);
-  const reverbEnabled = ref(false);
-  const reverbRoomSize = ref(DEFAULT_REVERB_ROOM_SIZE);
-  const lowLatency = ref(false);
-  const instrument = ref<InstrumentId>("piano");
+  const isLoading = ref(false);
+  const isMuted = ref(initialSettings?.isMuted ?? false);
+  const volumeDb = ref(initialSettings?.volumeDb ?? DEFAULT_VOLUME_DB);
+  const reverbEnabled = ref(initialSettings?.reverbEnabled ?? false);
+  const reverbRoomSize = ref(initialSettings?.reverbRoomSize ?? DEFAULT_REVERB_ROOM_SIZE);
+  const lowLatency = ref(initialSettings?.lowLatency ?? false);
+  const instrument = ref<InstrumentId>(initialSettings?.instrument ?? "piano");
 
   // Nodes
   let synth: any | null = null;
   let volNode: any | null = null;
   let reverb: any | null = null;
+  let masterGain: any | null = null;
   let blurHandler: (() => void) | null = null;
 
   /**
@@ -121,14 +114,18 @@ export function useAudioSynth() {
     reverb = new Tone.Freeverb({ roomSize: reverbRoomSize.value, wet: reverbEnabled.value ? 0.2 : 0 });
 
     // Connect chain with parallel dry/wet paths so dry signal is heard even when reverb is off
-    synth.connect(volNode);
-    volNode.toDestination();
-    volNode.connect(reverb);
-    reverb.toDestination();
+    // Route both dry and wet paths through a master gain to guarantee global mute
+    masterGain = new Tone.Gain(1);
+    masterGain.toDestination();
 
-    // Ensure not muted by default
-    isMuted.value = false;
-    volNode.mute = false;
+    synth.connect(volNode);
+    volNode.connect(masterGain);
+    volNode.connect(reverb);
+    reverb.connect(masterGain);
+
+    // Apply master mute via gain (0 when muted, 1 otherwise)
+    if (masterGain)
+      masterGain.gain.value = isMuted.value ? 0 : 1;
 
     audioInitialized.value = true;
 
@@ -169,6 +166,14 @@ export function useAudioSynth() {
       }
       catch {}
       reverb = null;
+    }
+    if (masterGain) {
+      try {
+        masterGain.disconnect();
+        masterGain.dispose?.();
+      }
+      catch {}
+      masterGain = null;
     }
   }
 
@@ -224,6 +229,7 @@ export function useAudioSynth() {
       return;
     // Recreate synth maintaining chain
     if (audioInitialized.value) {
+      isLoading.value = true; // Start loading indicator
       const prevVol = volNode;
       synth?.disconnect();
       synth?.dispose?.();
@@ -251,9 +257,14 @@ export function useAudioSynth() {
       }
 
       const maybeConnect = async () => {
-        await waitForSynthLoaded(synth);
-        if (prevVol)
-          synth.connect(prevVol);
+        try {
+          await waitForSynthLoaded(synth);
+          if (prevVol)
+            synth.connect(prevVol);
+        }
+        finally {
+          isLoading.value = false; // Stop loading indicator
+        }
       };
       // Fire and forget
       void maybeConnect();
@@ -267,15 +278,15 @@ export function useAudioSynth() {
   }
 
   function toggleMute() {
-    isMuted.value = !isMuted.value;
-    if (volNode)
-      volNode.mute = isMuted.value;
+    setMuted(!isMuted.value);
   }
 
   function setMuted(muted: boolean) {
     isMuted.value = muted;
-    if (volNode)
-      volNode.mute = muted;
+    // Drive mute via master gain so all branches are affected
+    if (masterGain) {
+      masterGain.gain.value = muted ? 0 : 1;
+    }
   }
 
   function setReverbEnabled(enabled: boolean) {
@@ -286,8 +297,16 @@ export function useAudioSynth() {
 
   function setReverbRoomSize(size: number) {
     reverbRoomSize.value = size;
-    if (reverb)
-      reverb.roomSize = size;
+    if (reverb) {
+      try {
+        reverb.roomSize = size;
+      }
+      catch (err) {
+        console.warn("Cannot set reverb roomSize (read-only property):", err);
+        // Note: In some Tone.js versions, roomSize is read-only after creation
+        // You would need to recreate the reverb effect to change room size
+      }
+    }
   }
 
   /** Adjust scheduling lookAhead for perceived latency. */
@@ -303,29 +322,58 @@ export function useAudioSynth() {
     }
   }
 
-  onUnmounted(() => {
+  /**
+   * Check if the underlying AudioContext is running (autoplay policy satisfied)
+   */
+  function isContextRunning(): boolean {
+    const Tone = ToneRef.value;
+    if (!Tone)
+      return false;
+    const ctx = typeof Tone.getContext === "function" ? Tone.getContext() : (Tone as any).context;
+    const state = ctx?.rawContext?.state ?? ctx?.state;
+    return state === "running";
+  }
+
+  /**
+   * Explicit cleanup function to replace onUnmounted hook.
+   * Call this manually when you want to dispose the audio system.
+   * Safe to call multiple times.
+   */
+  function cleanup() {
+    // Remove window blur event listener if it was registered
     if (typeof window !== "undefined" && blurHandler) {
       window.removeEventListener("blur", blurHandler);
       blurHandler = null;
     }
+
+    // Dispose the audio chain
     disposeChain();
-  });
+
+    // Reset state
+    audioInitialized.value = false;
+  }
+
+  function getSettings(): AudioSettings {
+    return {
+      isMuted: isMuted.value,
+      volumeDb: volumeDb.value,
+      reverbEnabled: reverbEnabled.value,
+      reverbRoomSize: reverbRoomSize.value,
+      lowLatency: lowLatency.value,
+      instrument: instrument.value,
+    };
+  }
 
   return {
     // state
+    isSupported,
     audioInitialized,
-    isMuted,
-    volumeDb,
-    reverbEnabled,
-    reverbRoomSize,
-    lowLatency,
-    instrument,
+    isLoading,
     // lifecycle / context
-    ensureToneLoaded,
     startAudioContextIfNeeded,
     initAudioChain,
-    disposeChain,
     releaseAll,
+    cleanup,
     // controls
     noteOn,
     noteOff,
@@ -336,5 +384,7 @@ export function useAudioSynth() {
     setReverbEnabled,
     setReverbRoomSize,
     setLowLatency,
+    isContextRunning,
+    getSettings,
   };
 }

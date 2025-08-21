@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { computed, reactive, ref } from "vue";
+import { computed, onMounted, reactive, ref } from "vue";
 
 import type { ColorMode, LabelStyle } from "~/types/piano";
 
 import { useMidi } from "~/composables/use-midi";
 import { DEFAULT_OCTAVE, DEFAULT_OCTAVE_RANGE } from "~/constants/piano";
+import { usePlaygroundAudioStore } from "~/stores/playground-audio";
 import { useScalePracticeStore } from "~/stores/scale-practice";
 import { blurTargetOrActiveElementOnChange } from "~/utils/dom";
 import { getScaleNotes } from "~/utils/scale-utils";
@@ -53,9 +54,8 @@ const highlightedNotes = computed(() => {
   });
 });
 
-const isClient = typeof window !== "undefined";
-const audio = isClient ? (await import("~/composables/use-audio-synth")).useAudioSynth() : null;
-const audioEnabled = computed(() => Boolean(audio?.audioInitialized.value));
+// Use the global audio store for synchronized audio settings
+const playgroundAudioStore = usePlaygroundAudioStore();
 
 // Use the useMidi composable instead of duplicate MIDI state
 const {
@@ -72,59 +72,43 @@ const {
 
 // No more wrapper functions needed - store actions are called directly in template
 
+// Simplified audio handlers using the store
 async function handleNoteOn(noteId: string, _source?: "keyboard" | "midi" | "ui") {
-  if (!activeNotes.value.includes(noteId))
+  // Track active notes for visual feedback
+  if (!activeNotes.value.includes(noteId)) {
     activeNotes.value.push(noteId);
-  if (audio) {
-    // Auto-enable for any source (keyboard, UI, or MIDI). If the browser blocks this for MIDI,
-    // the call will simply have no effect and the user can click Enable Audio.
-    if (!audio.audioInitialized.value)
-      await enableAudio();
-    await audio.noteOn(noteId);
   }
+
+  // Play note through the audio store (handles all audio logic)
+  await playgroundAudioStore.playNote(noteId);
 }
 
 async function handleNoteOff(noteId: string) {
+  // Remove from active notes
   activeNotes.value = activeNotes.value.filter(n => n !== noteId);
-  if (audio)
-    await audio.noteOff(noteId);
+
+  // Stop note through the audio store
+  await playgroundAudioStore.stopNote(noteId);
 }
 
+// Audio control functions using the store
 async function enableAudio() {
-  if (!audio)
-    return;
-
-  // Preserve current mute state
-  const wasMuted = audio.isMuted.value;
-
-  await audio.startAudioContextIfNeeded();
-  if (!audio.audioInitialized.value)
-    await audio.initAudioChain();
-
-  // Restore mute state
-  if (wasMuted !== undefined)
-    audio.setMuted(wasMuted);
-}
-
-function updateIsMuted(isMuted: boolean) {
-  if (audio) {
-    if (audio.setMuted)
-      audio.setMuted(isMuted);
-    else
-      audio.isMuted.value = isMuted;
-  }
+  await playgroundAudioStore.enableAudio();
 }
 
 function toggleMute(event: Event) {
-  if (audio) {
-    const current = audio?.isMuted.value;
-    audio.setMuted(!current);
-    blurTargetOrActiveElementOnChange(event);
-  }
+  playgroundAudioStore.updateMute(!playgroundAudioStore.settings.isMuted);
+  blurTargetOrActiveElementOnChange(event);
 }
 
 // Note playback is triggered directly in handleNoteOn/Off to ensure
 // we can gate Tone.start() behind a user gesture via enableAudio().
+
+// Preload the audio instance on mount so the Enable Audio button
+// can start the context immediately within the user gesture.
+onMounted(() => {
+  playgroundAudioStore.preload();
+});
 </script>
 
 <template>
@@ -142,30 +126,46 @@ function toggleMute(event: Event) {
     <div class="card bg-base-100 shadow-xl" data-theme="dark">
       <div class="card-body">
         <div class="space-y-6">
+          <!-- Audio Status Display -->
+          <client-only>
+            <div v-if="playgroundAudioStore.error" class="alert alert-error mb-4">
+              <Icon name="hugeicons:alert-triangle" size="20" />
+              <span>{{ playgroundAudioStore.error }}</span>
+              <button
+                class="btn btn-sm btn-ghost"
+                @click="playgroundAudioStore.resetToDefaults"
+              >
+                Reset Audio
+              </button>
+            </div>
+          </client-only>
+
           <!-- Configuration Panel -->
           <div class="flex justify-end">
             <!-- add a music off/on toggle here -->
             <!-- <client-only> -->
-            <div class="form-control">
-              <label class="label cursor-pointer justify-start gap-3 text-base-content p-2">
-                <input
-                  type="checkbox"
-                  class="checkbox checkbox-sm hidden"
-                  :checked="audio?.isMuted.value"
-                  @change="toggleMute"
-                >
-                <Icon
-                  v-if="audio?.isMuted.value"
-                  name="hugeicons:volume-off"
-                  size="24"
-                />
-                <Icon
-                  v-else
-                  name="hugeicons:volume-high"
-                  size="24"
-                />
-              </label>
-            </div>
+            <client-only>
+              <div class="form-control">
+                <label class="label cursor-pointer justify-start gap-3 text-base-content p-2">
+                  <input
+                    type="checkbox"
+                    class="checkbox checkbox-sm hidden"
+                    :checked="playgroundAudioStore.settings.isMuted"
+                    @change="toggleMute"
+                  >
+                  <Icon
+                    v-if="playgroundAudioStore.settings.isMuted"
+                    name="hugeicons:volume-off"
+                    size="24"
+                  />
+                  <Icon
+                    v-else
+                    name="hugeicons:volume-high"
+                    size="24"
+                  />
+                </label>
+              </div>
+            </client-only>
             <client-only>
               <piano-config-panel
                 :config="pianoConfig"
@@ -178,25 +178,24 @@ function toggleMute(event: Event) {
             </client-only>
             <client-only>
               <sound-control-panel
-                v-if="audio"
-                :is-muted="audio.isMuted.value"
-                :volume-db="audio.volumeDb.value"
-                :reverb-enabled="audio.reverbEnabled.value"
-                :room-size="audio.reverbRoomSize.value"
-                :low-latency="audio.lowLatency.value"
-                :instrument="audio.instrument.value"
-                :enabled="audioEnabled"
+                :is-muted="playgroundAudioStore.settings.isMuted"
+                :volume-db="playgroundAudioStore.settings.volumeDb"
+                :reverb-enabled="playgroundAudioStore.settings.reverbEnabled"
+                :reverb-room-size="playgroundAudioStore.settings.reverbRoomSize"
+                :low-latency="playgroundAudioStore.settings.lowLatency"
+                :instrument="playgroundAudioStore.settings.instrument"
+                :enabled="playgroundAudioStore.audioReady"
                 :is-midi-supported="isMidiSupported"
                 :midi-inputs="midiInputs"
                 :selected-midi-input-id="selectedMidiInputId"
                 :midi-error="midiError"
                 @enable-audio="enableAudio"
-                @update:is-muted="updateIsMuted"
-                @update:volume-db="audio.setVolume($event)"
-                @update:reverb-enabled="audio.setReverbEnabled($event)"
-                @update:room-size="audio.setReverbRoomSize($event)"
-                @update:low-latency="audio.setLowLatency($event)"
-                @update:instrument="audio.setInstrument($event)"
+                @update:is-muted="playgroundAudioStore.updateMute"
+                @update:volume-db="playgroundAudioStore.updateVolume"
+                @update:reverb-enabled="playgroundAudioStore.updateReverbEnabled"
+                @update:reverb-room-size="playgroundAudioStore.updateReverbRoomSize"
+                @update:low-latency="playgroundAudioStore.updateLowLatency"
+                @update:instrument="playgroundAudioStore.updateInstrument"
                 @update:midi-input="updateMidiInput"
               />
             </client-only>
@@ -222,7 +221,7 @@ function toggleMute(event: Event) {
               :show-keyboard-guide="pianoConfig.showKeyboardGuide"
               :show-keyboard-hints="pianoConfig.showKeyboardHints"
               :midi-input="pianoConfig.enableMidi"
-              :audio-enabled="audioEnabled"
+              :audio-enabled="playgroundAudioStore.audioReady"
               :highlighted-notes="highlightedNotes"
 
               @note-on="handleNoteOn"

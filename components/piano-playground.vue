@@ -20,13 +20,13 @@ const props = withDefaults(defineProps<PianoPlaygroundProps>(), {
   showKeyboardHints: false,
   midiInput: false,
   isKeyboardBlocked: false,
+  audioEnabled: false,
 });
 
 // Emits
 const emit = defineEmits<PianoPlaygroundEmits>();
 
 // Audio enabled state and MIDI-banner flag
-const audioEnabled = computed(() => Boolean(props.audioEnabled));
 const showAudioBlockedHint = ref(false);
 
 // State managed by keyboard composable
@@ -79,7 +79,7 @@ const {
     if (!midiActiveNotes.value.includes(noteId))
       midiActiveNotes.value.push(noteId);
     emit("note-on", noteId, "midi");
-    if (!audioEnabled.value)
+    if (!props.audioEnabled)
       showAudioBlockedHint.value = true;
   },
   onNoteOff: (noteId) => {
@@ -91,7 +91,7 @@ const {
 const mergedActiveNotes = computed(() => Array.from(new Set([...activeNotes.value, ...midiActiveNotes.value])));
 
 // Hide the MIDI banner as soon as audio is enabled
-watch(audioEnabled, (enabled) => {
+watch(() => props.audioEnabled, (enabled) => {
   if (enabled)
     showAudioBlockedHint.value = false;
 });
@@ -116,7 +116,7 @@ watch(audioEnabled, (enabled) => {
     </div>
     <!-- Floating banner when MIDI is used but audio is not enabled -->
     <div
-      v-if="showAudioBlockedHint && !audioEnabled"
+      v-if="showAudioBlockedHint && !props.audioEnabled"
       class="alert alert-warning shadow-lg absolute left-1/2 top-24 -translate-x-1/2 z-50 w-[min(90vw,420px)] flex items-center gap-3"
       role="status"
     >

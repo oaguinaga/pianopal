@@ -3,7 +3,7 @@ const props = defineProps<{
   isMuted: boolean;
   volumeDb: number; // -60 .. 0
   reverbEnabled: boolean;
-  roomSize: number; // 0..1
+  reverbRoomSize: number; // 0..1
   lowLatency: boolean;
   instrument: "piano" | "polysynth" | "amsynth" | "fmsynth" | "membranesynth";
   enabled?: boolean;
@@ -18,7 +18,7 @@ const emit = defineEmits<{
   (e: "update:is-muted", val: boolean): void;
   (e: "update:volume-db", val: number): void;
   (e: "update:reverb-enabled", val: boolean): void;
-  (e: "update:room-size", val: number): void;
+  (e: "update:reverb-room-size", val: number): void;
   (e: "update:low-latency", val: boolean): void;
   (e: "update:instrument", val: "piano" | "polysynth" | "amsynth" | "fmsynth" | "membranesynth"): void;
   (e: "enable-audio"): void;
@@ -38,7 +38,7 @@ function onReverbToggle() {
 }
 function onRoomSize(e: Event) {
   const t = e.target as HTMLInputElement;
-  emit("update:room-size", Number(t.value));
+  emit("update:reverb-room-size", Number(t.value));
 }
 function onLatencyToggle() {
   emit("update:low-latency", !props.lowLatency);
@@ -72,14 +72,13 @@ function onMidiInputChange(e: Event) {
             class="btn btn-sm"
             @click="$emit('enable-audio')"
           >
+            {{ props.enabled ? 'Audio Enabled' : 'Enable Audio' }}
             <div
-              v-if="props.enabled"
               class="inline-grid *:[grid-area:1/1]"
             >
-              <div class="status status-primary animate-ping" />
-              <div class="status status-primary" />
+              <div class="status animate-ping" :class="props.enabled ? 'status-primary' : 'status-error'" />
+              <div class="status" :class="props.enabled ? 'status-primary' : 'status-error'" />
             </div>
-            {{ props.enabled ? 'Audio Enabled' : 'Enable Audio' }}
           </button>
         </div>
 
@@ -172,14 +171,14 @@ function onMidiInputChange(e: Event) {
               <div v-if="reverbEnabled" class="form-control">
                 <label class="label">
                   <span class="label-text text-sm">Room Size</span>
-                  <span class="label-text-alt text-xs">{{ roomSize.toFixed(2) }}</span>
+                  <span class="label-text-alt text-xs">{{ reverbRoomSize.toFixed(2) }}</span>
                 </label>
                 <input
                   type="range"
                   min="0"
                   max="1"
                   step="0.01"
-                  :value="roomSize"
+                  :value="reverbRoomSize"
                   class="range range-sm"
                   @input="onRoomSize"
                 >

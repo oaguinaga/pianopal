@@ -18,7 +18,7 @@ import {
 } from "~/constants/scale";
 import { generateScale, getScaleNotes } from "~/utils/scale-utils";
 
-export const useScalePracticeStore = defineStore("scalePractice", () => {
+export const useScalePracticeStore = defineStore("scale-practice", () => {
   const currentSession = ref<ScalePracticeSession | null>(null);
   const availableScales = ref<Scale[]>([]);
   const practiceSettings = ref<ScaleSettings>({ ...DEFAULT_SCALE_SETTINGS });

@@ -51,31 +51,38 @@ export const BLACK_KEY_POSITION_MAP = {
 // Color mapping for PRD specifications using semantic tokens
 export const NOTE_COLOR_MAP = {
   C: {
-    highlight: "bg-blue-200",
+    highlight: "bg-blue-100",
+    hint: "bg-blue-300",
     active: "bg-blue-400",
   },
   D: {
-    highlight: "bg-purple-200",
+    highlight: "bg-purple-100",
+    hint: "bg-purple-300",
     active: "bg-purple-400",
   },
   E: {
-    highlight: "bg-pink-200",
+    highlight: "bg-pink-100",
+    hint: "bg-pink-300",
     active: "bg-pink-400",
   },
   F: {
-    highlight: "bg-emerald-200",
+    highlight: "bg-emerald-100",
+    hint: "bg-emerald-300",
     active: "bg-emerald-400",
   },
   G: {
-    highlight: "bg-red-300",
+    highlight: "bg-red-200",
+    hint: "bg-red-300",
     active: "bg-red-400",
   },
   A: {
-    highlight: "bg-orange-200",
+    highlight: "bg-orange-100",
+    hint: "bg-orange-300",
     active: "bg-orange-400",
   },
   B: {
-    highlight: "bg-yellow-200",
+    highlight: "bg-yellow-100",
+    hint: "bg-yellow-300",
     active: "bg-yellow-400",
   },
 } as const;
@@ -85,46 +92,56 @@ export const BLACK_KEY_COLOR_MAP = {
   // C# / Db
   "C#": {
     highlight: "bg-blue-900",
+    hint: "bg-blue-700",
     active: "bg-blue-500",
   },
   "Db": {
     highlight: "bg-purple-900",
+    hint: "bg-purple-700",
     active: "bg-purple-500",
   },
   // D# / Eb
   "D#": {
     highlight: "bg-purple-900",
+    hint: "bg-purple-700",
     active: "bg-purple-500",
   },
   "Eb": {
     highlight: "bg-pink-900",
+    hint: "bg-pink-700",
     active: "bg-pink-500",
   },
   // F# / Gb
   "F#": {
     highlight: "bg-emerald-900",
+    hint: "bg-emerald-700",
     active: "bg-emerald-600",
   },
   "Gb": {
     highlight: "bg-red-900",
+    hint: "bg-red-700",
     active: "bg-red-600",
   },
   // G# / Ab
   "G#": {
     highlight: "bg-red-900",
+    hint: "bg-red-700",
     active: "bg-red-600",
   },
   "Ab": {
     highlight: "bg-orange-900",
+    hint: "bg-orange-700",
     active: "bg-orange-500",
   },
   // A# / Bb
   "A#": {
     highlight: "bg-orange-900",
+    hint: "bg-orange-700",
     active: "bg-orange-500",
   },
   "Bb": {
     highlight: "bg-yellow-900",
+    hint: "bg-yellow-700",
     active: "bg-yellow-500",
   },
 } as const;

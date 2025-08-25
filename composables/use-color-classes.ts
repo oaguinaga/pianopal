@@ -16,28 +16,56 @@ export function useColorClasses(
   highlightedNotes: Ref<string[]>,
   activeNotes: Ref<string[]>,
   internalActiveNotes: Ref<string[]>,
+  hintNotes: Ref<string[]>,
+  successNotes: Ref<string[]>,
   colorMode: ComputedRef<ColorMode>,
+  showScaleHighlights: ComputedRef<boolean>,
+  showNextNoteHint: ComputedRef<boolean>,
+  showSuccessAnimation: ComputedRef<boolean>,
 ) {
   // Get note helpers
-  const { isActive, isHighlighted, getEnharmonicEquivalents } = useNoteHelpers(
+  const { isActive, isHighlighted, isHint, isSuccess, getEnharmonicEquivalents } = useNoteHelpers(
     highlightedNotes,
     activeNotes,
     internalActiveNotes,
+    hintNotes,
+    successNotes,
   );
 
-  // White keys: mono/per-note branches
+  // White keys: mono/per-note branches with practice states
   function getWhiteKeyColorClasses(note: WhiteNote, octave: number): string {
     const isNoteActive = isActive(note, octave);
-    const isNoteHighlighted = isHighlighted(note, octave);
+    const isNoteHighlighted = isHighlighted(note, octave) && showScaleHighlights.value;
+    const isNoteHint = isHint(note, octave) && showNextNoteHint.value;
+    const isNoteSuccess = isSuccess(note, octave);
 
-    if (!isNoteActive && !isNoteHighlighted)
+    // Priority order: active > hint > highlighted (success is additive on top of active)
+    if (!isNoteActive && !isNoteHint && !isNoteHighlighted)
       return "";
 
+    // Success animation classes (only applies on top of active state)
+    const successClass = isNoteSuccess && isNoteActive && showSuccessAnimation.value
+      ? "success-ring"
+      : "";
+
     if (colorMode.value === "mono") {
-      const result = isNoteActive
-        ? "bg-indigo-300 active-key"
-        : "bg-indigo-200 highlighted-key";
-      return result;
+      let baseClass = "";
+      let stateClass = "";
+
+      if (isNoteActive) {
+        baseClass = "bg-indigo-300";
+        stateClass = "active-key";
+      }
+      else if (isNoteHint) {
+        baseClass = "bg-indigo-200"; // Between highlight and active
+        stateClass = "hint-key";
+      }
+      else if (isNoteHighlighted) {
+        baseClass = "bg-indigo-100";
+        stateClass = "highlighted-key";
+      }
+
+      return `${baseClass} ${stateClass} ${successClass}`.trim();
     }
 
     // Per-note color mode
@@ -47,34 +75,71 @@ export function useColorClasses(
     if (!colorMap)
       return "";
 
-    const result = isNoteActive
-      ? `${colorMap.active} active-key`
-      : `${colorMap.highlight} highlighted-key`;
+    let baseClass = "";
+    let stateClass = "";
 
-    return result;
+    if (isNoteActive) {
+      baseClass = colorMap.active;
+      stateClass = "active-key";
+    }
+    else if (isNoteHint) {
+      // Create a hint color between highlight and active
+      baseClass = (colorMap as any).hint || colorMap.highlight; // Fallback to highlight if hint not defined
+      stateClass = "hint-key";
+    }
+    else if (isNoteHighlighted) {
+      baseClass = colorMap.highlight;
+      stateClass = "highlighted-key";
+    }
+
+    return `${baseClass} ${stateClass} ${successClass}`.trim();
   }
 
-  // Black keys: mono/per-note with enharmonic-aware selection
+  // Black keys: mono/per-note with enharmonic-aware selection and practice states
   function getBlackKeyColorClasses(note: BlackNote, octave: number): string {
     const isNoteActive = isActive(note, octave);
-    const isNoteHighlighted = isHighlighted(note, octave);
+    const isNoteHighlighted = isHighlighted(note, octave) && showScaleHighlights.value;
+    const isNoteHint = isHint(note, octave) && showNextNoteHint.value;
+    const isNoteSuccess = isSuccess(note, octave);
 
-    if (!isNoteActive && !isNoteHighlighted)
+    // Priority order: active > hint > highlighted (success is additive on top of active)
+    if (!isNoteActive && !isNoteHint && !isNoteHighlighted)
       return "";
 
+    // Success animation classes (only applies on top of active state)
+    const successClass = isNoteSuccess && isNoteActive && showSuccessAnimation.value
+      ? "success-ring"
+      : "";
+
     if (colorMode.value === "mono") {
-      return isNoteActive
-        ? "bg-indigo-600 active-key"
-        : "bg-indigo-900 highlighted-key";
+      let baseClass = "";
+      let stateClass = "";
+
+      if (isNoteActive) {
+        baseClass = "bg-indigo-600";
+        stateClass = "active-key";
+      }
+      else if (isNoteHint) {
+        baseClass = "bg-indigo-700"; // Between highlight and active
+        stateClass = "hint-key";
+      }
+      else if (isNoteHighlighted) {
+        baseClass = "bg-indigo-900";
+        stateClass = "highlighted-key";
+      }
+
+      return `${baseClass} ${stateClass} ${successClass}`.trim();
     }
 
     // Per-note color mode - find which specific note from the props is causing this highlight/active state
     let targetNote: keyof typeof BLACK_KEY_COLOR_MAP = note as keyof typeof BLACK_KEY_COLOR_MAP;
 
-    // Check both highlighted and active notes to find the exact note that triggered this
+    // Check all relevant note arrays to find the exact note that triggered this state
     const allRelevantNotes = [
       ...(isNoteHighlighted ? highlightedNotes.value : []),
       ...(isNoteActive ? [...activeNotes.value, ...internalActiveNotes.value] : []),
+      ...(isNoteHint ? hintNotes.value : []),
+      ...(isNoteSuccess ? successNotes.value : []),
     ];
 
     // Get all enharmonic equivalents for this physical key
@@ -104,9 +169,23 @@ export function useColorClasses(
     if (!colorMap)
       return "";
 
-    return isNoteActive
-      ? `${colorMap.active} active-key`
-      : `${colorMap.highlight} highlighted-key`;
+    let baseClass = "";
+    let stateClass = "";
+
+    if (isNoteActive) {
+      baseClass = colorMap.active;
+      stateClass = "active-key";
+    }
+    else if (isNoteHint) {
+      baseClass = (colorMap as any).hint || colorMap.highlight; // Fallback to highlight if hint not defined
+      stateClass = "hint-key";
+    }
+    else if (isNoteHighlighted) {
+      baseClass = colorMap.highlight;
+      stateClass = "highlighted-key";
+    }
+
+    return `${baseClass} ${stateClass} ${successClass}`.trim();
   }
 
   // Get color classes for a note (direct reactive approach)
@@ -121,10 +200,12 @@ export function useColorClasses(
   // Get label color based on key state
   function getLabelColorClass(note: string, octave: number, isBlackKey: boolean): string {
     const isNoteActive = isActive(note, octave);
-    const isNoteHighlighted = isHighlighted(note, octave);
+    const isNoteHighlighted = isHighlighted(note, octave) && showScaleHighlights.value;
+    const isNoteHint = isHint(note, octave) && showNextNoteHint.value;
+    const isNoteSuccess = isSuccess(note, octave);
 
-    // Use dark text on highlighted/active keys for better contrast
-    if (isNoteActive || isNoteHighlighted) {
+    // Use dark text on highlighted/active/hint/success keys for better contrast
+    if (isNoteActive || isNoteSuccess || isNoteHint || isNoteHighlighted) {
       return isBlackKey ? "text-white" : "text-gray-950";
     }
 

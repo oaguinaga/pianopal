@@ -48,6 +48,26 @@ const meta: Meta<typeof VisualPiano> = {
       control: "object",
       description: "Array of note IDs that are currently active/pressed",
     },
+    hintNotes: {
+      control: "object",
+      description: "Array of note IDs to show as hints (next expected notes)",
+    },
+    successNotes: {
+      control: "object",
+      description: "Array of note IDs that should show success animation",
+    },
+    showScaleHighlights: {
+      control: "boolean",
+      description: "Whether to show scale note highlights",
+    },
+    showNextNoteHint: {
+      control: "boolean",
+      description: "Whether to show hint for next note",
+    },
+    showSuccessAnimation: {
+      control: "boolean",
+      description: "Whether to show success ring animation",
+    },
     disabled: {
       control: "boolean",
       description: "Whether the piano is disabled",
@@ -501,6 +521,97 @@ export const ColorVerificationMono: Story = {
     docs: {
       description: {
         story: "Verifies that mono color mode uses consistent indigo colors for all highlighted notes.",
+      },
+    },
+  },
+};
+
+// Practice Mode Visual Feedback Stories
+export const PracticeModeBasic: Story = {
+  name: "Practice Mode - Basic Feedback",
+  args: {
+    octaves: 2,
+    labelStyle: "letter",
+    colorMode: "per-note",
+    highlightedNotes: ["C1", "D1", "E1", "F1", "G1", "A1", "B1", "C2"], // C Major scale
+    hintNotes: ["E1"], // Next note to play
+    activeNotes: [],
+    showScaleHighlights: true,
+    showNextNoteHint: true,
+    showSuccessAnimation: true,
+  },
+  parameters: {
+    docs: {
+      description: {
+        story: "Shows the practice mode with scale highlights and next note hint. The E1 key should appear with a hint color between highlight and active.",
+      },
+    },
+  },
+};
+
+export const PracticeModeWithSuccess: Story = {
+  name: "Practice Mode - Success Animation",
+  args: {
+    octaves: 2,
+    labelStyle: "letter",
+    colorMode: "per-note",
+    highlightedNotes: ["C1", "D1", "E1", "F1", "G1", "A1", "B1", "C2"], // C Major scale
+    hintNotes: ["F1"], // Next note to play
+    successNotes: ["E1"], // Just played correctly
+    activeNotes: [],
+    showScaleHighlights: true,
+    showNextNoteHint: true,
+    showSuccessAnimation: true,
+  },
+  parameters: {
+    docs: {
+      description: {
+        story: "Shows the success animation on E1 after a correct note press, with F1 showing as the next hint.",
+      },
+    },
+  },
+};
+
+export const PracticeModeRingAnimation: Story = {
+  name: "Practice Mode - Ring Animation",
+  args: {
+    octaves: 2,
+    labelStyle: "letter",
+    colorMode: "per-note",
+    highlightedNotes: ["C1", "D1", "E1", "F1", "G1", "A1", "B1", "C2"], // C Major scale
+    hintNotes: ["F1"], // Next note to play
+    successNotes: ["C1"], // Just played correctly
+    activeNotes: [],
+    showScaleHighlights: true,
+    showNextNoteHint: true,
+    showSuccessAnimation: true,
+  },
+  parameters: {
+    docs: {
+      description: {
+        story: "Shows the ring animation on C1 after a correct note press, with D1 showing as the next hint.",
+      },
+    },
+  },
+};
+
+export const PracticeModeNoScaleHighlights: Story = {
+  name: "Practice Mode - Hints Only",
+  args: {
+    octaves: 2,
+    labelStyle: "letter",
+    colorMode: "per-note",
+    highlightedNotes: ["C1", "D1", "E1", "F1", "G1", "A1", "B1", "C2"], // C Major scale (still provided)
+    hintNotes: ["G1"], // Next note to play
+    activeNotes: [],
+    showScaleHighlights: false, // Hide scale highlights
+    showNextNoteHint: true,
+    showSuccessAnimation: true,
+  },
+  parameters: {
+    docs: {
+      description: {
+        story: "Shows only the hint for the next note (G1) without displaying the full scale highlights. This is for users who prefer minimal visual guidance.",
       },
     },
   },

@@ -30,12 +30,18 @@ export type VisualPianoProps = {
   labelStyle?: LabelStyle;
   highlightedNotes?: string[];
   activeNotes?: string[];
+  hintNotes?: string[]; // Notes to show as hints (next expected notes in practice)
+  successNotes?: string[]; // Notes that should show success animation
   disabled?: boolean;
   colorMode?: ColorMode;
   inputEnabled?: boolean;
   showOctaveLabels?: boolean;
   showKeyboardHints?: boolean;
   keyboardHints?: Record<string, string>; // noteId (e.g., C4) -> key (e.g., 'A')
+  // Practice mode visual options
+  showScaleHighlights?: boolean; // Whether to show scale note highlights
+  showNextNoteHint?: boolean; // Whether to show hint for next note
+  showSuccessAnimation?: boolean; // Whether to show success ring animation
 };
 
 export type VisualPianoEmits = {

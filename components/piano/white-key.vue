@@ -76,11 +76,11 @@ const _props = withDefaults(defineProps<{
     inset 0 1px 0 rgba(255, 255, 255, 0.01);
 }
 
-.white-key:not(.highlighted-key):not(.active-key) {
+.white-key:not(.highlighted-key):not(.active-key):not(.hint-key) {
   background-color: white;
 }
 
-.white-key:hover:not(:disabled):not(.highlighted-key):not(.active-key) {
+.white-key:hover:not(:disabled):not(.highlighted-key):not(.active-key):not(.hint-key) {
   background-color: rgb(249, 250, 251);
   box-shadow:
     0 3px 6px rgba(0, 0, 0, 0.08),
@@ -107,5 +107,38 @@ const _props = withDefaults(defineProps<{
 
 .dark .white-key:hover:not(:disabled) {
   background-color: rgb(55, 65, 81);
+}
+
+/* Success ring animation - appears on top of active state */
+.success-ring {
+  position: relative;
+  z-index: 10; /* Ensure it appears above adjacent keys */
+}
+
+.success-ring::after {
+  content: "";
+  position: absolute;
+  top: -3px;
+  left: -3px;
+  right: -3px;
+  bottom: -3px;
+  border: 2px solid currentColor;
+  border-radius: inherit;
+  animation: successRing 500ms ease-out;
+  pointer-events: none;
+  z-index: 11; /* Above the key itself */
+}
+
+@keyframes successRing {
+  0% {
+    transform: scale(1);
+    opacity: 0.8;
+    border-width: 2px;
+  }
+  100% {
+    transform: scale(1.15);
+    opacity: 0;
+    border-width: 1px;
+  }
 }
 </style>

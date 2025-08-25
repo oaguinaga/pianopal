@@ -10,6 +10,10 @@ type PianoConfig = {
   showKeyboardHints: boolean;
   showKeyboardGuide: boolean;
   enableMidi: boolean;
+  // Practice mode visual options
+  showScaleHighlights: boolean;
+  showNextNoteHint: boolean;
+  showSuccessAnimation: boolean;
 };
 
 type Props = {
@@ -19,6 +23,7 @@ type Props = {
   showDisplayOptions?: boolean;
   showKeyboardOptions?: boolean;
   showAdvancedOptions?: boolean;
+  showPracticeOptions?: boolean;
 };
 
 type Emits = {
@@ -31,6 +36,7 @@ const _props = withDefaults(defineProps<Props>(), {
   showDisplayOptions: true,
   showKeyboardOptions: true,
   showAdvancedOptions: true,
+  showPracticeOptions: true,
 });
 
 defineEmits<Emits>();
@@ -227,6 +233,52 @@ defineEmits<Emits>();
                   @change="(event) => $emit('update:config', { ...config, enableMidi: (event.target as HTMLInputElement).checked })"
                 >
                 <span class="label-text text-sm">Enable MIDI (if supported)</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Practice Mode Settings -->
+          <div v-if="showPracticeOptions" class="space-y-3">
+            <h4 class="text-sm font-medium text-base-content/70 uppercase tracking-wide">
+              Practice Mode
+            </h4>
+
+            <!-- Show Scale Highlights -->
+            <div class="form-control">
+              <label class="label cursor-pointer justify-start gap-3">
+                <input
+                  :checked="config.showScaleHighlights"
+                  type="checkbox"
+                  class="checkbox checkbox-sm"
+                  @change="(event) => $emit('update:config', { ...config, showScaleHighlights: (event.target as HTMLInputElement).checked })"
+                >
+                <span class="label-text text-sm">Show Scale Notes</span>
+              </label>
+            </div>
+
+            <!-- Show Next Note Hint -->
+            <div class="form-control">
+              <label class="label cursor-pointer justify-start gap-3">
+                <input
+                  :checked="config.showNextNoteHint"
+                  type="checkbox"
+                  class="checkbox checkbox-sm"
+                  @change="(event) => $emit('update:config', { ...config, showNextNoteHint: (event.target as HTMLInputElement).checked })"
+                >
+                <span class="label-text text-sm">Show Next Note Hint</span>
+              </label>
+            </div>
+
+            <!-- Show Success Animation -->
+            <div class="form-control">
+              <label class="label cursor-pointer justify-start gap-3">
+                <input
+                  :checked="config.showSuccessAnimation"
+                  type="checkbox"
+                  class="checkbox checkbox-sm"
+                  @change="(event) => $emit('update:config', { ...config, showSuccessAnimation: (event.target as HTMLInputElement).checked })"
+                >
+                <span class="label-text text-sm">Show Success Animation</span>
               </label>
             </div>
           </div>

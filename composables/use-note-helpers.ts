@@ -13,6 +13,8 @@ export function useNoteHelpers(
   highlightedNotes: Ref<string[]>,
   activeNotes: Ref<string[]>,
   internalActiveNotes: Ref<string[]>,
+  hintNotes?: Ref<string[]>,
+  successNotes?: Ref<string[]>,
 ) {
   // Generate note identifier for events
   function getNoteId(note: string, octave: number): string {
@@ -53,6 +55,22 @@ export function useNoteHelpers(
     return result;
   }
 
+  // Check if a note is a hint (next expected note in practice)
+  function isHint(note: string, octave: number): boolean {
+    if (!hintNotes?.value)
+      return false;
+    const equivalents = getEnharmonicEquivalents(note, octave);
+    return equivalents.some(equiv => hintNotes.value.includes(equiv));
+  }
+
+  // Check if a note should show success animation
+  function isSuccess(note: string, octave: number): boolean {
+    if (!successNotes?.value)
+      return false;
+    const equivalents = getEnharmonicEquivalents(note, octave);
+    return equivalents.some(equiv => successNotes.value.includes(equiv));
+  }
+
   // Pick a display note symbol (prefers flats when present in input sets)
   function getDisplayNote(note: string, octave: number): string {
     if (!note.includes("#"))
@@ -64,6 +82,8 @@ export function useNoteHelpers(
       ...highlightedNotes.value,
       ...activeNotes.value,
       ...internalActiveNotes.value,
+      ...(hintNotes?.value || []),
+      ...(successNotes?.value || []),
     ];
 
     for (const equiv of equivalents) {
@@ -124,6 +144,8 @@ export function useNoteHelpers(
     getEnharmonicEquivalents,
     isHighlighted,
     isActive,
+    isHint,
+    isSuccess,
     getNoteLabel,
     getDisplayNote,
     formatDoReMiLabel,

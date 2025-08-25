@@ -43,12 +43,17 @@ const props = withDefaults(defineProps<VisualPianoProps>(), {
   labelStyle: "none",
   highlightedNotes: () => [],
   activeNotes: () => [],
+  hintNotes: () => [],
+  successNotes: () => [],
   disabled: false,
   colorMode: "per-note",
   inputEnabled: true,
   showOctaveLabels: false,
   showKeyboardHints: false,
   keyboardHints: () => ({}),
+  showScaleHighlights: true,
+  showNextNoteHint: true,
+  showSuccessAnimation: true,
 });
 
 // Emits
@@ -79,14 +84,18 @@ const lastVisibleOctave = computed(() => props.startOctave + validatedOctaves.va
 // Convert props to refs for composables
 const highlightedNotesRef = ref<string[]>([]);
 const activeNotesRef = ref<string[]>([]);
+const hintNotesRef = ref<string[]>([]);
+const successNotesRef = ref<string[]>([]);
 
 // Initialize composables
 const {
   getNoteId,
   isHighlighted,
   isActive,
+  isHint,
+  isSuccess,
   getNoteLabel,
-} = useNoteHelpers(highlightedNotesRef, activeNotesRef, internalActiveNotes);
+} = useNoteHelpers(highlightedNotesRef, activeNotesRef, internalActiveNotes, hintNotesRef, successNotesRef);
 
 const {
   getNoteColorClass,
@@ -95,7 +104,12 @@ const {
   highlightedNotesRef,
   activeNotesRef,
   internalActiveNotes,
+  hintNotesRef,
+  successNotesRef,
   computed(() => props.colorMode),
+  computed(() => props.showScaleHighlights),
+  computed(() => props.showNextNoteHint),
+  computed(() => props.showSuccessAnimation),
 );
 
 const {
@@ -118,6 +132,16 @@ watch(() => props.activeNotes, (newActiveNotes) => {
 // Also watch for changes in highlightedNotes to ensure proper reactivity
 watch(() => props.highlightedNotes, (newHighlightedNotes) => {
   highlightedNotesRef.value = [...newHighlightedNotes];
+}, { deep: true, immediate: true });
+
+// Watch for changes in hintNotes
+watch(() => props.hintNotes, (newHintNotes) => {
+  hintNotesRef.value = [...newHintNotes];
+}, { deep: true, immediate: true });
+
+// Watch for changes in successNotes
+watch(() => props.successNotes, (newSuccessNotes) => {
+  successNotesRef.value = [...newSuccessNotes];
 }, { deep: true, immediate: true });
 
 // Event handling functions
@@ -151,7 +175,21 @@ function handleKeyRelease(note: string, octave: number) {
 // Enhanced accessibility - generate ARIA labels
 function getAriaLabel(note: string, octave: number): string {
   const label = getNoteLabel(note, octave, props.labelStyle, props.showOctaveLabels);
-  const state = isActive(note, octave) ? "pressed" : isHighlighted(note, octave) ? "highlighted" : "normal";
+  let state = "normal";
+
+  if (isActive(note, octave)) {
+    state = "pressed";
+  }
+  else if (isSuccess(note, octave)) {
+    state = "success";
+  }
+  else if (isHint(note, octave)) {
+    state = "hint";
+  }
+  else if (isHighlighted(note, octave)) {
+    state = "highlighted";
+  }
+
   return `${label || note + octave} piano key, ${state}`;
 }
 </script>

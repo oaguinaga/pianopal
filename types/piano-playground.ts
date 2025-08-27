@@ -17,6 +17,12 @@ export type PianoPlaygroundProps = {
   colorMode?: ColorMode;
   showOctaveLabels?: boolean;
   highlightedNotes?: string[];
+  hintNotes?: string[];
+  successNotes?: string[];
+
+  showScaleHighlights?: boolean;
+  showNextNoteHint?: boolean;
+  showSuccessAnimation?: boolean;
   showKeyboardHints?: boolean;
   midiInput?: boolean;
   /** True when the audio context/chain is enabled; used for banner control */

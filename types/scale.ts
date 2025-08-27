@@ -26,23 +26,6 @@ export type MetronomeConfig = {
   sound: boolean;
 };
 
-export type ScalePracticeConfig = {
-  root: string;
-  scale: string;
-  bpm: number;
-  metronome: MetronomeConfig;
-  practiceMode: PracticeMode;
-  loop: boolean;
-};
-
-export type ScalePracticeResult = {
-  config: ScalePracticeConfig;
-  totalNotes: number;
-  correctNotes: number;
-  accuracy: number; // % correct
-  timestamp: Date;
-};
-
 export type ValidationResult = {
   isValid: boolean;
   errors: string[];
@@ -66,7 +49,6 @@ export type ScalePracticeSession = {
   currentNoteIndex: number;
   completedNotes: number;
   accuracy: number;
-  config: ScalePracticeConfig;
 };
 
 export type ScaleSettings = {

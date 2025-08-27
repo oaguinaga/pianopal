@@ -30,11 +30,13 @@ export const PRACTICE_MODES = {
   BOTH: "both" as const,
 } as const;
 
+export const DEFAULT_DIRECTION = "ascending" as const;
+
 // Metronome constants
 export const METRONOME_CONFIG = {
   MIN_BPM: 60,
   MAX_BPM: 200,
-  DEFAULT_BPM: 120,
+  DEFAULT_BPM: 30,
   VISUAL_MODES: {
     NOTE_NAME: "note_name" as const,
     PULSE: "pulse" as const,

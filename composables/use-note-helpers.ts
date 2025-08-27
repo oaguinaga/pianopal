@@ -57,8 +57,9 @@ export function useNoteHelpers(
 
   // Check if a note is a hint (next expected note in practice)
   function isHint(note: string, octave: number): boolean {
-    if (!hintNotes?.value)
+    if (!hintNotes?.value) {
       return false;
+    }
     const equivalents = getEnharmonicEquivalents(note, octave);
     return equivalents.some(equiv => hintNotes.value.includes(equiv));
   }

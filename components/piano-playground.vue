@@ -17,6 +17,12 @@ const props = withDefaults(defineProps<PianoPlaygroundProps>(), {
   colorMode: "per-note",
   showOctaveLabels: false,
   highlightedNotes: () => [],
+  hintNotes: () => [],
+  successNotes: () => [],
+
+  showScaleHighlights: true,
+  showNextNoteHint: true,
+  showSuccessAnimation: true,
   showKeyboardHints: false,
   midiInput: false,
   isKeyboardBlocked: false,
@@ -134,6 +140,11 @@ watch(() => props.audioEnabled, (enabled) => {
       :octaves="octaveRange"
       :start-octave="startOctave"
       :highlighted-notes="highlightedNotes"
+      :hint-notes="hintNotes"
+      :success-notes="successNotes"
+      :show-scale-highlights="showScaleHighlights"
+      :show-next-note-hint="showNextNoteHint"
+      :show-success-animation="showSuccessAnimation"
       :label-style="labelStyle"
       :theme="theme"
       :color-mode="colorMode"

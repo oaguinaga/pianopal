@@ -56,7 +56,7 @@ export function useColorClasses(
         baseClass = "bg-indigo-300";
         stateClass = "active-key";
       }
-      else if (isNoteHint) {
+      else if (isNoteHint || !showNextNoteHint.value) {
         baseClass = "bg-indigo-200"; // Between highlight and active
         stateClass = "hint-key";
       }
@@ -82,7 +82,9 @@ export function useColorClasses(
       baseClass = colorMap.active;
       stateClass = "active-key";
     }
-    else if (isNoteHint) {
+    /* #TODO: Revisit this logic. currently it makes sense because it allows the user to change to the hint color for the visual representation of all possible notes by sacrificing the hint behavior, meaning the user will not be able to see the hint notes in the visual representation in exchange of high contrast color to detect all scale notes. The concept of highlighted notes might not be needed for chords since the user will practice chord progressions and the next note hint will be enough to guide the user.
+    */
+    else if (isNoteHint || !showNextNoteHint.value) {
       // Create a hint color between highlight and active
       baseClass = (colorMap as any).hint || colorMap.highlight; // Fallback to highlight if hint not defined
       stateClass = "hint-key";

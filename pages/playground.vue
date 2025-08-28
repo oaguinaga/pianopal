@@ -123,7 +123,7 @@ onMounted(() => {
     </div>
 
     <!-- Piano Component Test -->
-    <div class="card bg-base-100 shadow-xl" data-theme="dark">
+    <div class="card bg-base-100 shadow-xl">
       <div class="card-body">
         <div class="space-y-6">
           <!-- Audio Status Display -->

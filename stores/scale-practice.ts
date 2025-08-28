@@ -1,10 +1,12 @@
 import { defineStore } from "pinia";
+import { Note } from "tonal";
 import { computed, ref } from "vue";
 
 import type {
   NotePlayedEvent,
   PracticeSessionState,
   Scale,
+  ScaleNote,
   ScalePracticeSession,
   ScaleSettings,
   ScaleType,
@@ -12,6 +14,7 @@ import type {
 
 import { DEFAULT_OCTAVE } from "~/constants/piano";
 import {
+  COUNT_IN_MS,
   DEFAULT_SCALE_SETTINGS,
   METRONOME_CONFIG,
 } from "~/constants/scale";
@@ -38,7 +41,7 @@ export const useScalePracticeStore = defineStore("scale-practice", () => {
   // ============================================================================
 
   // Get notes array based on practice direction
-  const getNotesForDirection = (scaleNotes: any[], direction: string) => {
+  const getNotesForDirection = (scaleNotes: ScaleNote[], direction: string) => {
     switch (direction) {
       case "ascending":
         return scaleNotes;
@@ -230,7 +233,7 @@ export const useScalePracticeStore = defineStore("scale-practice", () => {
       lastExpectedNoteTime.value = Date.now();
       // Start the tempo-driven progression
       startProgressionTimer();
-    }, 2000); // 2 second count-in
+    }, COUNT_IN_MS); // 2 second count-in
   };
 
   // Record a note played by the user with timing validation
@@ -244,7 +247,7 @@ export const useScalePracticeStore = defineStore("scale-practice", () => {
     const expectedNoteData = notes[currentNoteIndex.value];
 
     const isCorrect = expectedNoteData
-      && expectedNoteData.note === note
+      && (expectedNoteData.note === note || Note.enharmonic(note) === expectedNoteData.note)
       && expectedNoteData.octave === octave;
 
     const event: NotePlayedEvent = {

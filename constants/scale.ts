@@ -45,8 +45,8 @@ export const METRONOME_CONFIG = {
 
 export const DEFAULT_SCALE_SETTINGS = {
   // Basic scale selection defaults
-  root: "C",
-  scale: "major",
+  root: "D",
+  scale: "blues",
   bpm: METRONOME_CONFIG.DEFAULT_BPM,
 
   displayPreferences: {
@@ -80,3 +80,5 @@ export const PRACTICE_SESSION_DEFAULTS = {
   successGlowDuration: 500, // ms
   errorFeedbackDuration: 1000, // ms
 } as const;
+
+export const COUNT_IN_MS = 2000;

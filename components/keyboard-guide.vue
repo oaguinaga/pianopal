@@ -54,7 +54,7 @@ const TAILWIND_CLASSES = {
   octave_disabled: "bg-base-100 text-base-content dark:text-base-content cursor-not-allowed",
 
   // Musical key states
-  musical_mapped: "cursor-help",
+  musical_mapped: "cursor-help text-white",
   musical_unmapped: "cursor-not-allowed",
 
   // Default unmapped key

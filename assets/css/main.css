@@ -38,6 +38,15 @@
   --border: 2px;
   --depth: 0;
   --noise: 0;
+
+  /* note specific colors */
+  --color-note-c-text: theme(colors.blue.400);
+  --color-note-d-text: theme(colors.purple.400);
+  --color-note-e-text: theme(colors.pink.400);
+  --color-note-f-text: theme(colors.emerald.400);
+  --color-note-g-text: theme(colors.yellow.400);
+  --color-note-a-text: theme(colors.orange.400);
+  --color-note-b-text: theme(colors.red.400);
 }
 
 @plugin "daisyui/theme" {
@@ -58,13 +67,13 @@
   --color-neutral: oklch(21% 0.034 264.665);
   --color-neutral-content: oklch(98% 0.002 247.839);
   --color-info: oklch(70% 0.165 254.624);
-  --color-info-content: oklch(97% 0.014 254.604);
-  --color-success: oklch(76% 0.177 163.223);
-  --color-success-content: oklch(98% 0.031 120.757);
-  --color-warning: oklch(83% 0.128 66.29);
-  --color-warning-content: oklch(98% 0.016 73.684);
-  --color-error: oklch(71% 0.194 13.428);
-  --color-error-content: oklch(97% 0.014 343.198);
+  --color-info-content: oklch(37% 0.146 265.522);
+  --color-success: oklch(84% 0.143 164.978);
+  --color-success-content: oklch(37% 0.077 168.94);
+  --color-warning: oklch(96% 0.059 95.617);
+  --color-warning-content: oklch(41% 0.112 45.904);
+  --color-error: oklch(81% 0.117 11.638);
+  --color-error-content: oklch(27% 0.105 12.094);
   --radius-selector: 0.5rem;
   --radius-field: 0.5rem;
   --radius-box: 0.5rem;
@@ -73,6 +82,15 @@
   --border: 2px;
   --depth: 0;
   --noise: 0;
+
+  /* note specific colors */
+  --color-note-c-text: theme(colors.blue.400);
+  --color-note-d-text: theme(colors.purple.400);
+  --color-note-e-text: theme(colors.pink.400);
+  --color-note-f-text: theme(colors.emerald.400);
+  --color-note-g-text: theme(colors.yellow.400);
+  --color-note-a-text: theme(colors.orange.400);
+  --color-note-b-text: theme(colors.red.400);
 }
 
 /* Piano Key Custom Utilities */

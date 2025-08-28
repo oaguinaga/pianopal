@@ -5,12 +5,12 @@ import type { ColorMode, LabelStyle } from "~/types/piano";
 
 import { useMidi } from "~/composables/use-midi";
 import { DEFAULT_OCTAVE, DEFAULT_OCTAVE_RANGE } from "~/constants/piano";
+import { DEFAULT_DIRECTION, DEFAULT_SCALE_SETTINGS } from "~/constants/scale";
 import { usePlaygroundAudioStore } from "~/stores/playground-audio";
 import { useScalePracticeStore } from "~/stores/scale-practice";
 import { blurTargetOrActiveElementOnChange } from "~/utils/dom";
+import { formatNoteLabel } from "~/utils/notes";
 import { getScaleNotes } from "~/utils/scale-utils";
-
-// Test data for piano component
 
 // Piano configuration object
 const pianoConfig = reactive({
@@ -51,7 +51,7 @@ const highlightedNotes = computed(() => {
   }
 
   // Fallback to C major scale notes
-  const C_SCALE_NOTES = getScaleNotes("D", "blues");
+  const C_SCALE_NOTES = getScaleNotes(DEFAULT_SCALE_SETTINGS.root, DEFAULT_SCALE_SETTINGS.scale);
   return C_SCALE_NOTES.map((note) => {
     return `${note.note}${note.octave}`;
   });
@@ -180,7 +180,7 @@ onMounted(() => {
           </client-only>
 
           <!-- Practice Controls -->
-          <div class="card bg-base-200 shadow-lg mb-6 relative overflow-hidden">
+          <div class="card bg-base-200 shadow-lg mb-6 relative overflow-hidden max-w-2xl mx-auto min-h-32">
             <div v-if="!playgroundAudioStore.audioReady || scalePracticeStore.sessionState === 'playing' || scalePracticeStore.sessionState === 'count-in'" class="absolute top-0 right-0 left-0 bottom-0 bg-base-100/50 backdrop-blur-sm z-10">
               <!-- enable audio -->
               <div v-if="!playgroundAudioStore.audioReady" class="flex flex-col my-auto items-center justify-center h-full gap-y-2">
@@ -196,18 +196,43 @@ onMounted(() => {
                     <div class="status" :class="playgroundAudioStore.audioReady ? 'status-primary' : 'status-error'" />
                   </div>
                 </button>
-                <p class="text-sm text-base-content/70 grow-0">
-                  Please enable audio to start practicing
+                <p class="text-sm text-base-content/70 grow-0 max-w-sm text-center">
+                  Please click the "Enable Audio" button or interact with the piano to start practicing.
                 </p>
               </div>
             </div>
 
             <!-- count in -->
-            <div v-if="scalePracticeStore.sessionState === 'count-in'" class="absolute top-0 right-0 left-0 bottom-0 bg-base-100/50 backdrop-blur-sm z-10">
+            <div
+              v-if="scalePracticeStore.sessionState === 'count-in'"
+              class="countdown-container absolute top-0 right-0 left-0 bottom-0 bg-base-100/50 backdrop-blur-sm z-10"
+            >
               <div class="flex flex-col my-auto items-center justify-center h-full gap-y-2">
-                <p class="text-sm text-base-content/70 grow-0">
-                  Counting in...
+                <p
+                  class="text-7xl text-base-content/70 grow-0 transition-all duration-200 animate-pulse "
+                  :data-countdown-value="scalePracticeStore.countdownValue"
+                >
+                  {{ scalePracticeStore.countdownValue || "3" }}
                 </p>
+              </div>
+            </div>
+
+            <!-- Next note -->
+            <div v-if="scalePracticeStore.sessionState === 'playing'" class="absolute top-0 right-0 left-0 bottom-0 bg-base-100/50 backdrop-blur-sm z-10">
+              <div class="flex flex-col my-auto items-center justify-center h-full gap-y-2 relative">
+                <p class="text-7xl text-base-content/70 grow-0 transition-all duration-200 animate-pulse" :class="getNoteLabelColorClass(scalePracticeStore.expectedNote?.note || '')">
+                  {{ formatNoteLabel(scalePracticeStore.expectedNote?.note || "", pianoConfig.labelStyle) }}
+                </p>
+                <p class="text-sm text-base-content/70 grow-0 bottom-4 left-4 absolute">
+                  Loop {{ scalePracticeStore.currentLoop }} / {{ scalePracticeStore.currentSession?.repetitions || 1 }}
+                </p>
+                <button
+                  class="btn btn-error btn-sm absolute bottom-4 right-4"
+                  @click="scalePracticeStore.stopPractice"
+                >
+                  <Icon name="hugeicons:stop" :size="16" />
+                  Stop
+                </button>
               </div>
             </div>
 
@@ -217,10 +242,10 @@ onMounted(() => {
                 <div class="flex justify-between gap-x-4">
                   <!-- Scale Info -->
                   <scale-selection
-                    :selected-root="scalePracticeStore.practiceSettings.root"
-                    :selected-scale-type="scalePracticeStore.practiceSettings.scale"
-                    @root-change="(root) => { scalePracticeStore.handleRootChange(root); scalePracticeStore.handleStartPractice(); }"
-                    @scale-type-change="(scale) => { scalePracticeStore.handleScaleTypeChange(scale); scalePracticeStore.handleStartPractice(); }"
+                    :selected-root="scalePracticeStore.currentSession?.scale.root || 'C'"
+                    :selected-scale-type="scalePracticeStore.currentSession?.scale.type || 'major'"
+                    @root-change="(root) => scalePracticeStore.handleRootChange(root)"
+                    @scale-type-change="(scale) => scalePracticeStore.handleScaleTypeChange(scale)"
                   />
 
                   <!-- Practice Settings -->
@@ -230,7 +255,7 @@ onMounted(() => {
                     </label>
                     <select
                       class="select select-bordered select-sm"
-                      :value="scalePracticeStore.currentSession?.direction || 'ascending'"
+                      :value="scalePracticeStore.currentSession?.direction || DEFAULT_DIRECTION"
                       @change="(e) => scalePracticeStore.setPracticeDirection((e.target as HTMLSelectElement).value as any)"
                     >
                       <option value="ascending">
@@ -240,7 +265,7 @@ onMounted(() => {
                         ↓ Down
                       </option>
                       <option value="both">
-                        ↕ Both
+                        ⇅ Both
                       </option>
                     </select>
                   </div>
@@ -252,7 +277,7 @@ onMounted(() => {
                     </label>
                     <select
                       class="select select-bordered select-sm"
-                      :value="scalePracticeStore.totalLoops"
+                      :value="scalePracticeStore.currentSession?.repetitions || 1"
                       @change="(e) => scalePracticeStore.setLoops(parseInt((e.target as HTMLSelectElement).value))"
                     >
                       <option value="1">
@@ -272,7 +297,7 @@ onMounted(() => {
                   <!-- Tempo -->
                   <div class="form-control flex-1 flex gap-4">
                     <label class="label">
-                      <span class="label-text text-xs">{{ scalePracticeStore.practiceSettings.bpm }} BPM</span>
+                      <span class="label-text text-xs">{{ scalePracticeStore.currentSession?.tempo || 60 }} BPM</span>
                     </label>
                     <input
                       type="range"
@@ -280,7 +305,7 @@ onMounted(() => {
                       min="10"
                       max="200"
                       :step="5"
-                      :value="scalePracticeStore.practiceSettings.bpm"
+                      :value="scalePracticeStore.currentSession?.tempo || 60"
                       @input="(e) => scalePracticeStore.handleTempoChange(parseInt((e.target as HTMLInputElement).value))"
                     >
                   </div>
@@ -296,27 +321,7 @@ onMounted(() => {
                       <Icon name="hugeicons:play" size="16" />
                       Start
                     </button>
-
-                    <button
-                      v-if="scalePracticeStore.sessionState === 'playing' || scalePracticeStore.sessionState === 'count-in'"
-                      class="btn btn-error btn-sm"
-                      @click="scalePracticeStore.stopPractice"
-                    >
-                      <Icon name="hugeicons:stop" size="16" />
-                      Stop
-                    </button>
                   </div>
-                </div>
-              </div>
-
-              <!-- Progress Display -->
-              <div class="mt-3 text-center">
-                <div class="text-sm text-base-content/70">
-                  Loop {{ scalePracticeStore.currentLoop }} / {{ scalePracticeStore.totalLoops }} •
-                  Note {{ scalePracticeStore.currentNoteIndex + 1 }}
-                  <span v-if="scalePracticeStore.expectedNote">
-                    • Next: {{ scalePracticeStore.expectedNote.note }}{{ scalePracticeStore.expectedNote.octave }}
-                  </span>
                 </div>
               </div>
             </div>
@@ -413,3 +418,18 @@ onMounted(() => {
     </div>
   </div>
 </template>
+
+<style>
+.countdown-container [data-countdown-value="1"] {
+  color: var(--color-note-e-text);
+}
+.countdown-container [data-countdown-value="2"] {
+  color: var(--color-note-d-text);
+}
+.countdown-container [data-countdown-value="3"] {
+  color: var(--color-note-c-text);
+}
+.countdown-container [data-countdown-value="GO!"] {
+  color: var(--color-note-f-text);
+}
+</style>

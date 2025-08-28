@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   isMuted: boolean;
   volumeDb: number; // -60 .. 0
   reverbEnabled: boolean;
@@ -12,7 +12,15 @@ const props = defineProps<{
   midiInputs: Array<{ id: string; name: string }>;
   selectedMidiInputId: string;
   midiError?: string;
-}>();
+
+  showAdvancedOptions?: boolean;
+  showVolumeAndEffects?: boolean;
+  showInstrumentOptions?: boolean;
+}>(), {
+  showAdvancedOptions: true,
+  showVolumeAndEffects: true,
+  showInstrumentOptions: true,
+});
 
 const emit = defineEmits<{
   (e: "update:is-muted", val: boolean): void;
@@ -103,7 +111,7 @@ function onMidiInputChange(e: Event) {
             </div>
 
             <!-- Instrument Selection -->
-            <div class="form-control">
+            <div v-if="showInstrumentOptions" class="form-control">
               <label class="label">
                 <span class="label-text text-sm">Instrument</span>
               </label>
@@ -132,7 +140,7 @@ function onMidiInputChange(e: Event) {
           </div>
 
           <!-- Volume & Effects -->
-          <div class="space-y-3">
+          <div v-if="showVolumeAndEffects" class="space-y-3">
             <h4 class="text-sm font-medium text-base-content/70 uppercase tracking-wide">
               Volume & Effects
             </h4>
@@ -187,7 +195,7 @@ function onMidiInputChange(e: Event) {
           </div>
 
           <!-- Advanced Settings -->
-          <div class="space-y-3">
+          <div v-if="showAdvancedOptions" class="space-y-3">
             <h4 class="text-sm font-medium text-base-content/70 uppercase tracking-wide">
               Advanced
             </h4>

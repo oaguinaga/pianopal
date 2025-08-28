@@ -126,13 +126,25 @@ watch(() => props.audioEnabled, (enabled) => {
       class="alert alert-warning shadow-lg absolute left-1/2 top-24 -translate-x-1/2 z-50 w-[min(90vw,420px)] flex items-center gap-3"
       role="status"
     >
-      <Icon name="hugeicons:music-note-02" size="28" />
-      <span class="text-xs">
-        Audio is blocked by the browser until enabled. Press any key, click, or use the button to start audio.
-      </span>
-      <button class="btn btn-xs btn-primary ml-auto" @click="$emit('enable-audio')">
-        Enable Audio
-      </button>
+      <div class="flex flex-col gap-y-2">
+        <span class="text-xs flex items- gap-2">
+          <Icon name="hugeicons:alert-square" size="32" />
+          Audio is blocked by the browser until enabled. Press any key, click, or use the button to start audio.
+        </span>
+
+        <button
+          class="btn btn-warning btn-sm mx-auto"
+          @click="$emit('enable-audio')"
+        >
+          {{ audioEnabled ? 'Audio Enabled' : 'Enable Audio' }}
+          <div
+            class="inline-grid *:[grid-area:1/1]"
+          >
+            <div class="status animate-ping" :class="audioEnabled ? 'status-primary' : 'status-error'" />
+            <div class="status" :class="audioEnabled ? 'status-primary' : 'status-error'" />
+          </div>
+        </button>
+      </div>
     </div>
     <!-- Visual Piano Component -->
     <VisualPiano

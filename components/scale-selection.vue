@@ -3,7 +3,7 @@ import { ref, watch } from "vue";
 
 import type { ScaleType } from "@/types/scale";
 
-import { AVAILABLE_ROOT_NOTES, AVAILABLE_SCALE_TYPES } from "@/constants/scale";
+import { AVAILABLE_ROOT_NOTES, AVAILABLE_SCALE_TYPES, DEFAULT_SCALE_SETTINGS } from "@/constants/scale";
 
 // ============================================================================
 // PROPS & EMITS
@@ -16,8 +16,8 @@ type Props = {
 };
 
 const props = withDefaults(defineProps<Props>(), {
-  selectedRoot: "D",
-  selectedScaleType: "blues",
+  selectedRoot: DEFAULT_SCALE_SETTINGS.root,
+  selectedScaleType: DEFAULT_SCALE_SETTINGS.scale,
   disabled: false,
 });
 

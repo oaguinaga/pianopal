@@ -4,17 +4,18 @@ import { computed, ref } from "vue";
 
 import type {
   NotePlayedEvent,
+  PracticeMode,
   PracticeSessionState,
   Scale,
   ScaleNote,
   ScalePracticeSession,
-  ScaleSettings,
   ScaleType,
 } from "~/types/scale";
 
 import { DEFAULT_OCTAVE } from "~/constants/piano";
 import {
   COUNT_IN_MS,
+  DEFAULT_DIRECTION,
   DEFAULT_SCALE_SETTINGS,
   METRONOME_CONFIG,
 } from "~/constants/scale";
@@ -23,18 +24,20 @@ import { getScaleNotes } from "~/utils/scale-utils";
 export const useScalePracticeStore = defineStore("scale-practice", () => {
   const currentSession = ref<ScalePracticeSession | null>(null);
   const availableScales = ref<Scale[]>([]);
-  const practiceSettings = ref<ScaleSettings>({ ...DEFAULT_SCALE_SETTINGS });
   const sessionState = ref<PracticeSessionState>("idle");
   const currentNoteIndex = ref(0);
   const practiceHistory = ref<NotePlayedEvent[]>([]);
   const lastExpectedNoteTime = ref<number | null>(null);
   const currentLoop = ref(0);
-  const totalLoops = ref(5);
   const lastCorrectNote = ref<string | null>(null);
   const lastCorrectNoteTime = ref<number>(0);
 
   // Tempo-driven progression timer
   const progressionTimer = ref<NodeJS.Timeout | null>(null);
+
+  // Countdown state for visual feedback during count-in
+  const countdownValue = ref<string | null>(null);
+  const countdownTimer = ref<NodeJS.Timeout | null>(null);
 
   // ============================================================================
   // HELPER FUNCTIONS
@@ -131,23 +134,60 @@ export const useScalePracticeStore = defineStore("scale-practice", () => {
     }
   };
 
+  // Start countdown timer for visual feedback
+  const startCountdown = () => {
+    countdownValue.value = "3";
+
+    // Clear any existing countdown timer
+    if (countdownTimer.value) {
+      clearInterval(countdownTimer.value);
+    }
+
+    let count = 3;
+    const interval = 800; // 800ms per step
+
+    countdownTimer.value = setInterval(() => {
+      count--;
+      if (count === 2) {
+        countdownValue.value = "2";
+      }
+      else if (count === 1) {
+        countdownValue.value = "1";
+      }
+      else if (count === 0) {
+        countdownValue.value = "GO!";
+      }
+      else {
+        // Countdown finished
+        countdownValue.value = null;
+        if (countdownTimer.value) {
+          clearInterval(countdownTimer.value);
+          countdownTimer.value = null;
+        }
+      }
+    }, interval);
+  };
+
+  // Stop countdown timer
+  const stopCountdown = () => {
+    if (countdownTimer.value) {
+      clearInterval(countdownTimer.value);
+      countdownTimer.value = null;
+    }
+    countdownValue.value = null;
+  };
+
   // Complete the current practice session
   const completePracticeSession = () => {
     if (!currentSession.value)
       return;
 
     stopProgressionTimer();
+    stopCountdown();
     sessionState.value = "grading";
 
-    const totalNotes = currentSession.value.scale.notes.length;
-    const correctNotes = practiceHistory.value.filter(event => event.isCorrect).length;
-    const accuracy = Math.round((correctNotes / totalNotes) * 100);
-
-    // Update session
-    currentSession.value.endTime = new Date();
-    currentSession.value.isActive = false;
-    currentSession.value.completedNotes = correctNotes;
-    currentSession.value.accuracy = accuracy;
+    // Session completion is now handled by state only
+    // Results are calculated on-demand via currentSessionStats
 
     // For MVP, just show results without storing progress
     sessionState.value = "completed";
@@ -174,7 +214,7 @@ export const useScalePracticeStore = defineStore("scale-practice", () => {
       // Check if current scale iteration is complete
       if (currentNoteIndex.value >= notes.length) {
         // Check if we need to loop
-        if (currentLoop.value < totalLoops.value) {
+        if (currentLoop.value < currentSession.value.repetitions) {
           currentLoop.value++;
           currentNoteIndex.value = 0; // Reset to beginning of scale
         }
@@ -194,18 +234,13 @@ export const useScalePracticeStore = defineStore("scale-practice", () => {
   // ============================================================================
 
   // Select a scale for practice
-  const selectScale = (scale: Scale, config: Partial<ScalePracticeSession> = {}) => {
+  const selectScale = (scale: Scale, tempo: number = METRONOME_CONFIG.DEFAULT_BPM, direction: PracticeMode = DEFAULT_DIRECTION, repetitions: number = 1) => {
     const session: ScalePracticeSession = {
       id: `session-${Date.now()}`,
       scale,
-      tempo: config.tempo || METRONOME_CONFIG.DEFAULT_BPM,
-      direction: config.direction || "ascending",
-      repetitions: config.repetitions || 1,
-      startTime: new Date(),
-      isActive: true,
-      currentNoteIndex: 0,
-      completedNotes: 0,
-      accuracy: 0,
+      tempo,
+      direction,
+      repetitions,
     };
 
     currentSession.value = session;
@@ -226,6 +261,9 @@ export const useScalePracticeStore = defineStore("scale-practice", () => {
     practiceHistory.value = [];
     currentLoop.value = 1;
 
+    // Start visual countdown
+    startCountdown();
+
     // Simulate count-in delay
     setTimeout(() => {
       sessionState.value = "playing";
@@ -233,7 +271,7 @@ export const useScalePracticeStore = defineStore("scale-practice", () => {
       lastExpectedNoteTime.value = Date.now();
       // Start the tempo-driven progression
       startProgressionTimer();
-    }, COUNT_IN_MS); // 2 second count-in
+    }, COUNT_IN_MS);
   };
 
   // Record a note played by the user with timing validation
@@ -276,7 +314,7 @@ export const useScalePracticeStore = defineStore("scale-practice", () => {
       // Check if current scale iteration is complete
       if (currentNoteIndex.value >= notes.length) {
         // Check if we need to loop
-        if (currentLoop.value < totalLoops.value) {
+        if (currentLoop.value < currentSession.value.repetitions) {
           currentLoop.value++;
           currentNoteIndex.value = 0; // Reset to beginning of scale
           lastExpectedNoteTime.value = currentTime + noteInterval;
@@ -288,23 +326,10 @@ export const useScalePracticeStore = defineStore("scale-practice", () => {
     }
   };
 
-  // Update practice settings
-  const updatePracticeSettings = (newSettings: Partial<ScaleSettings>) => {
-    practiceSettings.value = { ...practiceSettings.value, ...newSettings };
-  };
-
-  // Reset practice session
-  const resetPractice = () => {
-    stopProgressionTimer();
-    currentSession.value = null;
-    sessionState.value = "idle";
-    currentNoteIndex.value = 0;
-    practiceHistory.value = [];
-  };
-
   // Stop current practice but keep session configuration
   const stopPractice = () => {
     stopProgressionTimer();
+    stopCountdown();
     sessionState.value = "idle";
     currentNoteIndex.value = 0;
     practiceHistory.value = [];
@@ -320,84 +345,67 @@ export const useScalePracticeStore = defineStore("scale-practice", () => {
   };
 
   // ============================================================================
-  // SCALE PRACTICE EVENT HANDLERS (extracted from piano-test.vue)
+  // SCALE PRACTICE EVENT HANDLERS
   // ============================================================================
 
-  // Handle root note change
+  // Handle root note change - updates current session scale
   const handleRootChange = (root: string) => {
-    practiceSettings.value.root = root;
+    if (currentSession.value) {
+      const scaleNotes = getScaleNotes(root, currentSession.value.scale.type, DEFAULT_OCTAVE as number);
 
-    // If we have an active session, regenerate scale notes
-    if (currentSession.value && practiceSettings.value.scale) {
-      const scaleNotes = getScaleNotes(root, practiceSettings.value.scale, DEFAULT_OCTAVE);
-      currentSession.value.scale.notes = scaleNotes;
+      // Update the current session's scale directly for reactivity
+      currentSession.value.scale = {
+        root,
+        type: currentSession.value.scale.type,
+        notes: scaleNotes,
+      };
     }
   };
 
-  // Handle scale type change
+  // Handle scale type change - updates current session scale
   const handleScaleTypeChange = (scaleType: ScaleType) => {
-    practiceSettings.value.scale = scaleType;
+    if (currentSession.value) {
+      const scaleNotes = getScaleNotes(currentSession.value.scale.root, scaleType, DEFAULT_OCTAVE as number);
 
-    // If we have an active session, regenerate scale notes
-    if (currentSession.value && practiceSettings.value.root) {
-      const scaleNotes = getScaleNotes(practiceSettings.value.root, scaleType, DEFAULT_OCTAVE);
-      currentSession.value.scale.notes = scaleNotes;
+      // Update the current session's scale directly for reactivity
+      currentSession.value.scale = {
+        root: currentSession.value.scale.root,
+        type: scaleType,
+        notes: scaleNotes,
+      };
     }
   };
 
   // Handle tempo change
   const handleTempoChange = (tempo: number) => {
-    practiceSettings.value.bpm = tempo;
-
-    // Update current session tempo if active
     if (currentSession.value) {
       currentSession.value.tempo = tempo;
     }
   };
 
-  // Handle start practice with current settings - only creates session
+  // Handle start practice with default C Major scale
   const handleStartPractice = () => {
-    const { root, scale, bpm } = practiceSettings.value;
+    // Generate default C Major scale
+    const scaleNotes = getScaleNotes(
+      DEFAULT_SCALE_SETTINGS.root,
+      DEFAULT_SCALE_SETTINGS.scale,
+      DEFAULT_OCTAVE as number,
+    );
+    const scaleData: Scale = {
+      root: DEFAULT_SCALE_SETTINGS.root,
+      type: DEFAULT_SCALE_SETTINGS.scale,
+      notes: scaleNotes,
+    };
 
-    if (!root || !scale) {
-      console.warn("Cannot start practice: missing root or scale type");
-      return;
-    }
-
-    // Generate scale notes
-    const scaleNotes = getScaleNotes(root, scale, DEFAULT_OCTAVE);
-    const scaleData: Scale = { root, type: scale, notes: scaleNotes };
-
-    // Create session but don't start it yet
-    selectScale(scaleData, { tempo: bpm });
-  };
-
-  // Generate scale notes for current settings (for highlighting)
-  const generateScaleNotes = () => {
-    const { root, scale } = practiceSettings.value;
-
-    if (!root || !scale) {
-      return [];
-    }
-
-    try {
-      return getScaleNotes(root, scale, DEFAULT_OCTAVE);
-    }
-    catch (error) {
-      console.error("Error generating scale:", error);
-      return [];
-    }
-  };
-
-  // Reset practice to default settings
-  const resetPracticeToDefaults = () => {
-    practiceSettings.value = { ...DEFAULT_SCALE_SETTINGS };
-    resetPractice();
+    // Create session with defaults
+    selectScale(scaleData, METRONOME_CONFIG.DEFAULT_BPM, DEFAULT_DIRECTION, 1);
   };
 
   // Set number of loops for practice
   const setLoops = (loops: number) => {
-    totalLoops.value = Math.max(1, loops);
+    if (currentSession.value) {
+      currentSession.value.repetitions = Math.max(1, loops);
+    }
   };
 
   // Set practice direction
@@ -411,12 +419,11 @@ export const useScalePracticeStore = defineStore("scale-practice", () => {
     // State
     currentSession,
     availableScales,
-    practiceSettings,
     sessionState,
     currentNoteIndex,
     practiceHistory,
     currentLoop,
-    totalLoops,
+    countdownValue,
 
     // Getters
     currentScale,
@@ -432,9 +439,6 @@ export const useScalePracticeStore = defineStore("scale-practice", () => {
     startPractice,
     stopPractice,
     stopProgressionTimer,
-    resetPractice,
-    resetPracticeToDefaults,
-    updatePracticeSettings,
     goToNote,
     recordNotePlayed,
     completePracticeSession,
@@ -442,7 +446,6 @@ export const useScalePracticeStore = defineStore("scale-practice", () => {
     handleScaleTypeChange,
     handleStartPractice,
     handleTempoChange,
-    generateScaleNotes,
     setLoops,
     setPracticeDirection,
   };

@@ -35,7 +35,8 @@ CREATE TABLE `user` (
 	`email_verified` integer NOT NULL,
 	`image` text,
 	`created_at` integer NOT NULL,
-	`updated_at` integer NOT NULL
+	`updated_at` integer NOT NULL,
+	`is_anonymous` integer
 );
 --> statement-breakpoint
 CREATE UNIQUE INDEX `user_email_unique` ON `user` (`email`);--> statement-breakpoint
@@ -48,5 +49,48 @@ CREATE TABLE `verification` (
 	`updated_at` integer NOT NULL
 );
 --> statement-breakpoint
-ALTER TABLE `favorite` ADD `user_id` integer NOT NULL REFERENCES user(id);--> statement-breakpoint
-ALTER TABLE `setting` ADD `user_id` integer NOT NULL REFERENCES user(id);
+CREATE TABLE `chord` (
+	`id` text PRIMARY KEY NOT NULL,
+	`root` text NOT NULL,
+	`type` text NOT NULL,
+	`notes` text NOT NULL,
+	`midi` text,
+	`name` text NOT NULL,
+	`description` text,
+	`created_at` integer NOT NULL,
+	`updated_at` integer NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE `favorite` (
+	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
+	`user_id` integer NOT NULL,
+	`item_id` integer NOT NULL,
+	`item_type` text NOT NULL,
+	`created_at` integer NOT NULL,
+	`updated_at` integer NOT NULL,
+	FOREIGN KEY (`user_id`) REFERENCES `user`(`id`) ON UPDATE no action ON DELETE cascade
+);
+--> statement-breakpoint
+CREATE TABLE `scale` (
+	`id` text PRIMARY KEY NOT NULL,
+	`root` text NOT NULL,
+	`type` text NOT NULL,
+	`notes` text NOT NULL,
+	`midi` text,
+	`name` text NOT NULL,
+	`description` text,
+	`created_at` integer NOT NULL,
+	`updated_at` integer NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE `setting` (
+	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
+	`type` text NOT NULL,
+	`user_id` integer NOT NULL,
+	`notation_mode` text DEFAULT 'letter',
+	`keyboard_layout` text DEFAULT 'qwerty',
+	`show_note_colors` integer DEFAULT true,
+	`note_colors` text,
+	`updated_at` integer NOT NULL,
+	FOREIGN KEY (`user_id`) REFERENCES `user`(`id`) ON UPDATE no action ON DELETE cascade
+);

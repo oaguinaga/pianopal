@@ -144,7 +144,7 @@ export const useScalePracticeStore = defineStore("scale-practice", () => {
     }
 
     let count = 3;
-    const interval = 800; // 800ms per step
+    const interval = COUNT_IN_MS / 4; // 800ms per step
 
     countdownTimer.value = setInterval(() => {
       count--;

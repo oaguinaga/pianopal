@@ -43,41 +43,6 @@ export type ScalePracticeSession = {
   tempo: number;
   direction: PracticeMode;
   repetitions: number;
-  startTime: Date;
-  endTime?: Date;
-  isActive: boolean;
-  currentNoteIndex: number;
-  completedNotes: number;
-  accuracy: number;
-};
-
-export type ScaleSettings = {
-  root: string;
-  scale: ScaleType;
-  bpm: number;
-
-  displayPreferences: {
-    showNoteNames: boolean;
-    showScaleDegrees: boolean;
-    showKeySignatures: boolean;
-    highlightCurrentNote: boolean;
-    showProgressBar: boolean;
-  };
-  practiceModes: {
-    autoAdvance: boolean;
-    countIn: boolean;
-    loopPractice: boolean;
-    randomizeOrder: boolean;
-  };
-  audioSettings: {
-    metronomeVolume: number;
-    noteVolume: number;
-    enableHarmonics: boolean;
-  };
-  tempoSettings: {
-    maxTempo: number;
-    minTempo: number;
-  };
 };
 
 export type PracticeSessionState

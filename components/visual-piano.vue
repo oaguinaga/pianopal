@@ -197,8 +197,9 @@ function getAriaLabel(note: string, octave: number): string {
 <template>
   <div
     :key="component_key"
-    class="visual-piano w-full bg-transparent touch-manipulation scroll-smooth"
-    :data-theme="theme"
+
+    class="visual-piano w-auto mx-auto bg-base-100 touch-manipulation scroll-smooth py-4 rounded-lg"
+    data-theme="dark"
     :class="{
       'pointer-events-none': disabled,
     }"

@@ -3,7 +3,7 @@ import { ref, watch } from "vue";
 
 import type { ScaleType } from "@/types/scale";
 
-import { AVAILABLE_ROOT_NOTES, AVAILABLE_SCALE_TYPES } from "@/constants/scale";
+import { AVAILABLE_ROOT_NOTES, AVAILABLE_SCALE_TYPES, DEFAULT_SCALE_SETTINGS } from "@/constants/scale";
 
 // ============================================================================
 // PROPS & EMITS
@@ -16,8 +16,8 @@ type Props = {
 };
 
 const props = withDefaults(defineProps<Props>(), {
-  selectedRoot: "C",
-  selectedScaleType: "major",
+  selectedRoot: DEFAULT_SCALE_SETTINGS.root,
+  selectedScaleType: DEFAULT_SCALE_SETTINGS.scale,
   disabled: false,
 });
 
@@ -32,10 +32,6 @@ const emit = defineEmits<{
 
 const currentRoot = ref(props.selectedRoot);
 const currentScaleType = ref<ScaleType>(props.selectedScaleType);
-
-// ============================================================================
-// COMPUTED PROPERTIES
-// ============================================================================
 
 // ============================================================================
 // EVENT HANDLERS
@@ -80,53 +76,48 @@ watch(
 </script>
 
 <template>
-  <div class="scale-selection">
-    <!-- Configuration Form -->
-    <div class="space-y-4 flex">
-      <!-- Root Note Selection -->
-      <div class="form-control">
-        <label class="label">
-          <span class="label-text font-medium text-xs">Root Note</span>
-        </label>
-        <select
-          :value="currentRoot"
-          :disabled="disabled"
-          class="select select-bordered w-full select-sm"
-          data-testid="root-note-select"
-          @change="handleRootChange"
-        >
-          <option
-            v-for="note in AVAILABLE_ROOT_NOTES"
-            :key="note"
-            :value="note"
-          >
-            {{ note }}
-          </option>
-        </select>
-      </div>
+  <!-- Root Note Selection -->
+  <div class="form-control">
+    <label class="label">
+      <span class="label-text font-medium text-xs">Root Note</span>
+    </label>
+    <select
+      :value="currentRoot"
+      :disabled="disabled"
+      class="select select-bordered w-full select-sm"
+      data-testid="root-note-select"
+      @change="handleRootChange"
+    >
+      <option
+        v-for="note in AVAILABLE_ROOT_NOTES"
+        :key="note"
+        :value="note"
+      >
+        {{ note }}
+      </option>
+    </select>
+  </div>
 
-      <!-- Scale Type Selection -->
-      <div class="form-control">
-        <label class="label">
-          <span class="label-text font-medium text-xs">Scale Type</span>
-        </label>
-        <select
-          :value="currentScaleType"
-          :disabled="disabled"
-          class="select select-bordered w-full select-sm"
-          data-testid="scale-type-select"
-          @change="handleScaleTypeChange"
-        >
-          <option
-            v-for="scaleType in AVAILABLE_SCALE_TYPES"
-            :key="scaleType"
-            :value="scaleType"
-          >
-            {{ scaleType.charAt(0).toUpperCase() + scaleType.slice(1) }}
-          </option>
-        </select>
-      </div>
-    </div>
+  <!-- Scale Type Selection -->
+  <div class="form-control">
+    <label class="label">
+      <span class="label-text font-medium text-xs">Scale Type</span>
+    </label>
+    <select
+      :value="currentScaleType"
+      :disabled="disabled"
+      class="select select-bordered w-full select-sm"
+      data-testid="scale-type-select"
+      @change="handleScaleTypeChange"
+    >
+      <option
+        v-for="scaleType in AVAILABLE_SCALE_TYPES"
+        :key="scaleType"
+        :value="scaleType"
+      >
+        {{ scaleType.charAt(0).toUpperCase() + scaleType.slice(1) }}
+      </option>
+    </select>
   </div>
 </template>
 

@@ -114,7 +114,6 @@ const _props = withDefaults(defineProps<{
 
 /* Success ring animation - appears on top of active state */
 .success-ring {
-  position: relative;
   z-index: 20; /* Higher than white keys to ensure visibility */
 }
 

@@ -2,7 +2,8 @@ import type { Ref } from "vue";
 
 import type { LabelStyle } from "~/types/piano";
 
-import { ACCIDENTAL_FLAT, ACCIDENTAL_SHARP, DO_RE_MI_MAP, ENHARMONIC_FLAT_TO_SHARP, NOTE_NAME_REGEX } from "~/constants/piano";
+import { ENHARMONIC_FLAT_TO_SHARP, NOTE_NAME_REGEX } from "~/constants/piano";
+import { formatDoReMiLabel, formatLetterLabelWithAccidental } from "~/utils/notes";
 
 /**
  * useNoteHelpers
@@ -99,20 +100,6 @@ export function useNoteHelpers(
     return note;
   }
 
-  // Map letter names to do-re-mi
-  function formatDoReMiLabel(note: string): string {
-    return DO_RE_MI_MAP[note as keyof typeof DO_RE_MI_MAP] || note;
-  }
-
-  // Map letter labels to use Unicode accidentals (C# → C♯, Db → D♭)
-  function formatLetterLabelWithAccidental(note: string): string {
-    if (note.includes("#"))
-      return note.replace("#", ACCIDENTAL_SHARP);
-    if (note.endsWith("b"))
-      return note.replace("b", ACCIDENTAL_FLAT);
-    return note;
-  }
-
   // Helper function to add octave if needed
   function addOctaveIfNeeded(label: string, octave: number, showOctave: boolean): string {
     return showOctave ? `${label}${octave}` : label;
@@ -149,6 +136,5 @@ export function useNoteHelpers(
     isSuccess,
     getNoteLabel,
     getDisplayNote,
-    formatDoReMiLabel,
   };
 }

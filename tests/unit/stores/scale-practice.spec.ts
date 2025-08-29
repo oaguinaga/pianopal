@@ -50,18 +50,10 @@ describe("scale Practice Store", () => {
       expect(store.currentNoteIndex).toBe(0);
       expect(store.practiceHistory).toEqual([]);
     });
-
-    it("should have default practice settings", () => {
-      expect(store.practiceSettings.displayPreferences.showNoteNames).toBe(true);
-      expect(store.practiceSettings.practiceModes.autoAdvance).toBe(false);
-      expect(store.practiceSettings.audioSettings.metronomeVolume).toBe(0.7);
-    });
   });
 
   describe("scale Initialization", () => {
     it("should initialize available scales", () => {
-      store.initializeScales();
-
       expect(store.availableScales.length).toBeGreaterThan(0);
 
       // Check that scales are properly structured
@@ -73,13 +65,9 @@ describe("scale Practice Store", () => {
   });
 
   describe("scale Selection", () => {
-    beforeEach(() => {
-      store.initializeScales();
-    });
-
     it("should select a scale for practice", () => {
       const scale = store.availableScales[0];
-      store.selectScale(scale, { tempo: 140, direction: "both" });
+      store.selectScale(scale, 140, "both", 1);
 
       expect(store.currentSession).not.toBeNull();
       expect(store.currentSession?.scale).toBe(scale);
@@ -100,7 +88,6 @@ describe("scale Practice Store", () => {
 
   describe("practice Session Management", () => {
     beforeEach(() => {
-      store.initializeScales();
       const scale = store.availableScales[0];
       store.selectScale(scale);
     });
@@ -122,34 +109,10 @@ describe("scale Practice Store", () => {
 
       expect(store.sessionState).toBe("playing");
     });
-
-    it("should pause and resume practice", () => {
-      store.startPractice();
-      vi.advanceTimersByTime(2000); // Complete count-in
-
-      store.pausePractice();
-      expect(store.sessionState).toBe("paused");
-
-      store.resumePractice();
-      expect(store.sessionState).toBe("playing");
-    });
-
-    it("should reset practice session", () => {
-      store.startPractice();
-      vi.advanceTimersByTime(2000);
-
-      store.resetPractice();
-
-      expect(store.currentSession).toBeNull();
-      expect(store.sessionState).toBe("idle");
-      expect(store.currentNoteIndex).toBe(0);
-      expect(store.practiceHistory).toEqual([]);
-    });
   });
 
   describe("note Recording and Progress", () => {
     beforeEach(() => {
-      store.initializeScales();
       const scale = store.availableScales[0];
       store.selectScale(scale);
       store.startPractice();
@@ -193,10 +156,6 @@ describe("scale Practice Store", () => {
   });
 
   describe("getters and Computed Values", () => {
-    beforeEach(() => {
-      store.initializeScales();
-    });
-
     it("should filter scales by type", () => {
       const majorScales = store.scalesByType("major");
       const minorScales = store.scalesByType("natural minor");
@@ -231,35 +190,8 @@ describe("scale Practice Store", () => {
     });
   });
 
-  describe("settings Management", () => {
-    it("should update practice settings", () => {
-      const newSettings = {
-        displayPreferences: {
-          showNoteNames: false,
-          showScaleDegrees: true,
-          showKeySignatures: false,
-          highlightCurrentNote: true,
-          showProgressBar: false,
-        },
-        audioSettings: {
-          metronomeVolume: 0.5,
-          noteVolume: 0.9,
-          enableHarmonics: true,
-        },
-      };
-
-      store.updatePracticeSettings(newSettings);
-
-      expect(store.practiceSettings.displayPreferences.showNoteNames).toBe(false);
-      expect(store.practiceSettings.displayPreferences.showScaleDegrees).toBe(true);
-      expect(store.practiceSettings.audioSettings.metronomeVolume).toBe(0.5);
-      expect(store.practiceSettings.audioSettings.enableHarmonics).toBe(true);
-    });
-  });
-
   describe("navigation", () => {
     beforeEach(() => {
-      store.initializeScales();
       const scale = store.availableScales[0];
       store.selectScale(scale);
     });

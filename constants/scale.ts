@@ -37,46 +37,13 @@ export const METRONOME_CONFIG = {
   MIN_BPM: 60,
   MAX_BPM: 200,
   DEFAULT_BPM: 30,
-  VISUAL_MODES: {
-    NOTE_NAME: "note_name" as const,
-    PULSE: "pulse" as const,
-  },
 } as const;
 
 export const DEFAULT_SCALE_SETTINGS = {
   // Basic scale selection defaults
-  root: "C",
-  scale: "major",
+  root: "D",
+  scale: "blues",
   bpm: METRONOME_CONFIG.DEFAULT_BPM,
-
-  displayPreferences: {
-    showNoteNames: true,
-    showScaleDegrees: true,
-    showKeySignatures: true,
-    highlightCurrentNote: true,
-    showProgressBar: true,
-  },
-  practiceModes: {
-    autoAdvance: false,
-    countIn: true,
-    loopPractice: true,
-    randomizeOrder: false,
-  },
-  audioSettings: {
-    metronomeVolume: 0.7,
-    noteVolume: 0.8,
-    enableHarmonics: false,
-  },
-  tempoSettings: {
-    maxTempo: METRONOME_CONFIG.MAX_BPM,
-    minTempo: METRONOME_CONFIG.MIN_BPM,
-  },
 } as const;
 
-export const PRACTICE_SESSION_DEFAULTS = {
-  countInBars: 2,
-  countInTempo: 60,
-  autoAdvanceDelay: 2000, // ms
-  successGlowDuration: 500, // ms
-  errorFeedbackDuration: 1000, // ms
-} as const;
+export const COUNT_IN_MS = 3200; // 3.2 seconds: "3" (800ms) → "2" (800ms) → "1" (800ms) → "GO!" (800ms)

@@ -14,7 +14,7 @@ const isDark = computed({
 <template>
   <ClientOnly>
     <label
-      class="toggle"
+      class="swap swap-rotate "
       :class="isDark ? 'text-warning' : 'text-base-content'"
     >
       <input
@@ -22,17 +22,19 @@ const isDark = computed({
         type="checkbox"
         class="swap"
       >
+
       <Icon
-        name="hugeicons:moon-01"
-        class="swap-on"
-        :size="16"
-        aria-label="light"
+        name="hugeicons:moon-02"
+        class="swap-off"
+        :size="24"
+        aria-label="dark"
       />
+
       <Icon
         name="hugeicons:sun-01"
-        class="swap-off"
-        :size="16"
-        aria-label="dark"
+        class="swap-on"
+        :size="24"
+        aria-label="light"
       />
     </label>
   </ClientOnly>

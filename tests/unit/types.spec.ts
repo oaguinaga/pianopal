@@ -5,14 +5,11 @@ import type {
   PracticeSessionState,
   Scale,
   ScalePracticeSession,
-  ScaleSettings,
 } from "@/types/scale";
 
 import {
-  DEFAULT_SCALE_SETTINGS,
   METRONOME_CONFIG,
   PRACTICE_MODES,
-  PRACTICE_SESSION_DEFAULTS,
 } from "@/constants/scale";
 
 describe("scale Types", () => {
@@ -27,17 +24,6 @@ describe("scale Types", () => {
       expect(METRONOME_CONFIG.MAX_BPM).toBe(200);
       expect(METRONOME_CONFIG.MIN_BPM).toBe(60);
       expect(METRONOME_CONFIG.DEFAULT_BPM).toBe(120);
-    });
-
-    it("should have default scale settings", () => {
-      expect(DEFAULT_SCALE_SETTINGS.displayPreferences.showNoteNames).toBe(true);
-      expect(DEFAULT_SCALE_SETTINGS.practiceModes.autoAdvance).toBe(false);
-      expect(DEFAULT_SCALE_SETTINGS.audioSettings.metronomeVolume).toBe(0.7);
-    });
-
-    it("should have practice session defaults", () => {
-      expect(PRACTICE_SESSION_DEFAULTS.countInBars).toBe(2);
-      expect(PRACTICE_SESSION_DEFAULTS.autoAdvanceDelay).toBe(2000);
     });
   });
 
@@ -88,59 +74,11 @@ describe("scale Types", () => {
         tempo: 120,
         direction: "ascending",
         repetitions: 2,
-        startTime: new Date(),
-        isActive: true,
-        currentNoteIndex: 0,
-        completedNotes: 0,
-        accuracy: 0,
-        config: {
-          root: "C",
-          scale: "major",
-          bpm: 120,
-          metronome: {
-            visualMode: "note-name",
-            sound: true,
-          },
-          practiceMode: "ascending",
-          loop: true,
-        },
       };
 
       expect(session.id).toBe("session-1");
       expect(session.tempo).toBe(120);
       expect(session.direction).toBe("ascending");
-    });
-
-    it("should allow creating a valid ScaleSettings object", () => {
-      const settings: ScaleSettings = {
-        displayPreferences: {
-          showNoteNames: true,
-          showScaleDegrees: false,
-          showKeySignatures: true,
-          highlightCurrentNote: true,
-          showProgressBar: false,
-        },
-        practiceModes: {
-          autoAdvance: true,
-          countIn: false,
-          loopPractice: true,
-          randomizeOrder: false,
-        },
-        audioSettings: {
-          metronomeVolume: 0.5,
-          noteVolume: 0.9,
-          enableHarmonics: true,
-        },
-        tempoSettings: {
-          maxTempo: 160,
-          minTempo: 80,
-        },
-      };
-
-      expect(settings.displayPreferences.showNoteNames).toBe(true);
-      expect(settings.practiceModes.autoAdvance).toBe(true);
-      expect(settings.audioSettings.metronomeVolume).toBe(0.5);
-      expect(settings.tempoSettings.maxTempo).toBe(160);
     });
   });
 });

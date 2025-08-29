@@ -53,11 +53,11 @@ export function useColorClasses(
       let stateClass = "";
 
       if (isNoteActive) {
-        baseClass = "bg-indigo-300";
+        baseClass = "bg-indigo-500";
         stateClass = "active-key";
       }
       else if (isNoteHint || !showNextNoteHint.value) {
-        baseClass = "bg-indigo-200"; // Between highlight and active
+        baseClass = "bg-indigo-300"; // Between highlight and active
         stateClass = "hint-key";
       }
       else if (isNoteHighlighted) {

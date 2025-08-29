@@ -1,6 +1,6 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { createAuthMiddleware } from "better-auth/plugins";
+import { anonymous, createAuthMiddleware } from "better-auth/plugins";
 
 import db from "./db/index";
 import env from "./env";
@@ -21,6 +21,9 @@ export const auth = betterAuth({
       clientSecret: env.GOOGLE_CLIENT_SECRET,
     },
   },
+  plugins: [
+    anonymous(),
+  ],
   hooks: {
     // middleware to fix issue of duplicated request on the client when logged out
     after: createAuthMiddleware(async (ctx) => {

@@ -10,6 +10,7 @@ export const user = sqliteTable("user", {
   image: text(),
   createdAt: integer().$defaultFn(() => Date.now()).notNull(),
   updatedAt: integer().$defaultFn(() => Date.now()).$onUpdate(() => Date.now()).notNull(),
+  isAnonymous: integer({ mode: "boolean" }),
 });
 
 export const session = sqliteTable("session", {

@@ -1,7 +1,13 @@
+import { anonymousClient } from "better-auth/client/plugins";
 import { createAuthClient } from "better-auth/vue";
 import { defineStore } from "pinia";
 
-const authClient = createAuthClient();
+const authClient = createAuthClient({
+  plugins: [
+    anonymousClient(),
+  ],
+},
+);
 
 export const useAuthStore = defineStore("auth", () => {
   const session = ref<Awaited<ReturnType<typeof authClient.useSession>> | null>(null);
@@ -22,16 +28,21 @@ export const useAuthStore = defineStore("auth", () => {
     });
   };
 
+  const signInAnonymously = async () => {
+    await authClient.signIn.anonymous();
+  };
+
   const signOut = async () => {
     await authClient.signOut();
     navigateTo("/");
   };
 
   return {
-    loading,
+    init,
     signIn,
+    signInAnonymously,
     signOut,
     user,
-    init,
+    loading,
   };
 });

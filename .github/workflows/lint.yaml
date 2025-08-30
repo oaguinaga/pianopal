@@ -18,6 +18,8 @@ jobs:
       BETTER_AUTH_SECRET: ${{ secrets.BETTER_AUTH_SECRET }}
       GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
       GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+      EMAIL_FROM_DOMAIN: ${{ secrets.EMAIL_FROM_DOMAIN }}
+      RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
 
     steps:
       - uses: actions/checkout@v4

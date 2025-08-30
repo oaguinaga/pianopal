@@ -1,9 +1,9 @@
 <template>
-  <div class="navbar bg-base-300 shadow-sm md:px-24 px-2">
+  <div class="navbar bg-base-300 shadow-sm md:px-24">
     <NuxtLink to="/" class="flex-1">
       <Logo />
     </NuxtLink>
-    <div class="flex-none">
+    <div class="flex gap-x-4">
       <AppThemeToggle />
       <ul class="menu menu-horizontal px-1">
         <AuthButton />

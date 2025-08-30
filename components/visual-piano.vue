@@ -198,15 +198,16 @@ function getAriaLabel(note: string, octave: number): string {
   <div
     :key="component_key"
 
-    class="visual-piano w-auto mx-auto bg-base-100 touch-manipulation scroll-smooth py-4 rounded-lg"
-    data-theme="dark"
+    class="visual-piano w-auto mx-auto touch-manipulation scroll-smooth flex"
+
     :class="{
       'pointer-events-none': disabled,
     }"
   >
     <div
       ref="containerRef"
-      class="piano-container relative flex gap-px px-8 justify-center bg-transparent"
+      data-theme="dark"
+      class="piano-container relative gap-px p-8 rounded-lg bg-base-100 inline-flex mx-auto overflow-scroll"
       style="min-height: 224px; contain: layout style;"
     >
       <!-- Generate keys for each octave -->

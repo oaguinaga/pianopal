@@ -112,7 +112,7 @@ watch(() => props.audioEnabled, (enabled) => {
     <!-- Floating banner when keyboard is blocked by focus on other controls -->
     <div
       v-if="isKeyboardBlocked"
-      class="alert alert-warning shadow-lg absolute left-1/2 top-8 -translate-x-1/2 z-50 w-[min(90vw,400px)] flex items-center gap-2"
+      class="alert alert-warning shadow-lg absolute left-1/2 top-10 -translate-x-1/2 z-50 w-[min(90vw,400px)] flex items-center gap-2"
       role="status"
     >
       <Icon name="hugeicons:alert-square" size="32" />
@@ -123,7 +123,7 @@ watch(() => props.audioEnabled, (enabled) => {
     <!-- Floating banner when MIDI is used but audio is not enabled -->
     <div
       v-if="showAudioBlockedHint && !props.audioEnabled"
-      class="alert alert-warning shadow-lg absolute left-1/2 top-24 -translate-x-1/2 z-50 w-[min(90vw,420px)] flex items-center gap-3"
+      class="alert alert-warning shadow-lg absolute left-1/2 top-28 -translate-x-1/2 z-50 w-[min(90vw,420px)] flex items-center gap-3"
       role="status"
     >
       <div class="flex flex-col gap-y-2">

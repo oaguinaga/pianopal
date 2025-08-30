@@ -2,6 +2,10 @@
 const authStore = useAuthStore();
 const isOpen = ref(false);
 
+const email = ref("");
+const isSubmitting = ref(false);
+const showSuccess = ref(false);
+
 const { user, loading } = storeToRefs(authStore);
 
 const dialog = useTemplateRef("dialog");
@@ -17,6 +21,32 @@ onMounted(() => {
 onUnmounted(() => {
   dialog.value?.removeEventListener("close", onClose);
 });
+
+async function handleMagicLinkSubmit() {
+  if (!email.value)
+    return;
+
+  isSubmitting.value = true;
+  showSuccess.value = false;
+
+  try {
+    await authStore.signInWithMagicLink(email.value);
+    showSuccess.value = true;
+  }
+  catch (error) {
+    console.error("Magic link error:", error);
+    // Handle error (show error message)
+  }
+  finally {
+    isSubmitting.value = false;
+  }
+}
+
+function handleAnonymousSignIn() {
+  authStore.signInAnonymously();
+  isOpen.value = false;
+  navigateTo("/playground");
+}
 </script>
 
 <template>
@@ -30,16 +60,25 @@ onUnmounted(() => {
       class="btn m-1 px-2"
     >
       <div class="avatar">
-        <div class="mask mask-squircle w-8 h-8" :class="{ 'rotate-12': user?.image }">
-          <img
-            v-if="user?.image"
-            :src="user?.image"
-          >
-          <Icon
-            v-else
-            name="hugeicons:user-circle"
-            size="24"
-          />
+        <div
+          v-if="user?.image"
+          class="avatar"
+        >
+          <div class="w-8 h-8 mask mask-squircle rotate-12">
+            <img
+              :src="user?.image"
+            >
+          </div>
+        </div>
+        <div
+          v-else
+        >
+          <div class="w-8 h-8 flex items-center justify-center">
+            <Icon
+              name="hugeicons:user-circle"
+              size="24"
+            />
+          </div>
         </div>
       </div>
     </div>
@@ -74,36 +113,39 @@ onUnmounted(() => {
         Sign in
       </h3>
 
-      <form class="space-y-2">
+      <form class="space-y-2" @submit.prevent="handleMagicLinkSubmit">
         <fieldset class="fieldset">
           <legend class="fieldset-legend">
             Email address
           </legend>
 
           <label class="input validator w-full">
-            <Icon
-              name="hugeicons:mail-02"
-              size="24"
-            />
+            <Icon name="hugeicons:mail-02" size="24" />
             <input
+              v-model="email"
               type="email"
               placeholder="mail@site.com"
               required
             >
           </label>
         </fieldset>
-        <div class="validator-hint hidden">
-          Enter valid email address
+
+        <div v-if="showSuccess" class="alert alert-success">
+          <Icon name="hugeicons:checkmark-circle-02" size="16" />
+          Magic link sent! Check your email.
         </div>
+
         <button
+          type="submit"
           class="btn btn-primary w-full"
-          :disabled="authStore.loading"
+          :disabled="isSubmitting || !email"
         >
           <Icon
             name="hugeicons:magic-wand-01"
             size="20"
+            :class="{ 'animate-spin': isSubmitting }"
           />
-          Email me a magic link
+          {{ isSubmitting ? 'Sending...' : 'Email me a magic link' }}
         </button>
       </form>
 
@@ -132,7 +174,7 @@ onUnmounted(() => {
 
         <button
           class="btn btn-ghost w-full"
-          @click="authStore.signInAnonymously"
+          @click="handleAnonymousSignIn"
         >
           <Icon
             name="hugeicons:incognito"

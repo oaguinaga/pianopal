@@ -1,10 +1,11 @@
-import { anonymousClient } from "better-auth/client/plugins";
+import { anonymousClient, magicLinkClient } from "better-auth/client/plugins";
 import { createAuthClient } from "better-auth/vue";
 import { defineStore } from "pinia";
 
 const authClient = createAuthClient({
   plugins: [
     anonymousClient(),
+    magicLinkClient(),
   ],
 },
 );
@@ -32,6 +33,13 @@ export const useAuthStore = defineStore("auth", () => {
     await authClient.signIn.anonymous();
   };
 
+  const signInWithMagicLink = async (email: string) => {
+    await authClient.signIn.magicLink({
+      email,
+      callbackURL: "/playground",
+    });
+  };
+
   const signOut = async () => {
     await authClient.signOut();
     navigateTo("/");
@@ -41,6 +49,7 @@ export const useAuthStore = defineStore("auth", () => {
     init,
     signIn,
     signInAnonymously,
+    signInWithMagicLink,
     signOut,
     user,
     loading,

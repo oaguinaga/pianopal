@@ -79,7 +79,7 @@ const _props = withDefaults(defineProps<{
 
 .black-key {
   z-index: 10;
-  width: clamp(19px, 2.4vw, 34px);
+  width: clamp(26px, 2.4vw, 34px);
   height: 134px;
   border: 1px solid rgb(17, 24, 39, 0.3);
   border-radius: 0 0 0.375rem 0.375rem;

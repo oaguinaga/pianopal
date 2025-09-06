@@ -3,32 +3,36 @@ const authStore = useAuthStore();
 </script>
 
 <template>
-  <div class="hero bg-base-300 mx-auto container mt-8 rounded-2xl">
-    <div class="hero-content text-center">
-      <div class="max-w-md">
-        <h1 class="text-5xl font-bold">
-          Hello there
+  <div class="overflow-x-clip">
+    <div class="hero bg-base-100 mx-auto flex flex-col gap-4 mt-4">
+      <div class="hero-content flex flex-col gap-2 text-center mx-auto z-10">
+        <h1 class="text-3xl font-bold">
+          👋🏽 Welcome to Pianopal!
         </h1>
-        <p class="py-6">
-          Provident cupiditate voluptatem et in. Quaerat fugiat ut assumenda excepturi exercitationem
-          quasi. In deleniti eaque aut repudiandae et a id nisi.
+        <p class="text-base-content/80 max-w-56 mx-auto font-medium">
+          Your Cheerful Scales Companion ✨
         </p>
-        <AuthButton v-if="!authStore.user" />
+      </div>
+
+      <div class="relative mt-4 md:mt-6">
+        <doodle-background class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none z-0 " />
+        <single-octave-piano />
+      </div>
+
+      <div class="z-10">
+        <AuthButton
+          v-if="!authStore.user"
+          variant="accent"
+        />
         <div
           v-else
-          class="flex gap-2 justify-center"
+          class="flex gap-2 justify-center flex-col"
         >
           <NuxtLink
             to="/playground"
             class="btn btn-primary"
           >
-            Playground
-          </NuxtLink>
-          <NuxtLink
-            to="/test-playground"
-            class="btn btn-secondary"
-          >
-            Piano Test
+            Go to Playground
           </NuxtLink>
         </div>
       </div>

@@ -207,8 +207,7 @@ function getAriaLabel(note: string, octave: number): string {
     <div
       ref="containerRef"
       data-theme="dark"
-      class="piano-container relative gap-px p-8 rounded-lg bg-base-100 inline-flex mx-auto overflow-scroll"
-      style="min-height: 224px; contain: layout style;"
+      class="piano-container relative gap-px rounded-xl bg-base-100 inline-flex mx-auto overflow-scroll p-2"
     >
       <!-- Generate keys for each octave -->
       <div
@@ -271,6 +270,17 @@ function getAriaLabel(note: string, octave: number): string {
 </template>
 
 <style scoped>
+.octave-container {
+  overflow: hidden;
+  &:first-child {
+    border-radius: 0.5rem 0 0 0;
+  }
+
+  &:last-child {
+    border-radius: 0 0.5rem 0 0;
+  }
+}
+
 .visual-piano {
   isolation: isolate;
   scrollbar-width: none;

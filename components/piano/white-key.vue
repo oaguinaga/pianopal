@@ -67,7 +67,7 @@ const _props = withDefaults(defineProps<{
 
 .white-key {
   z-index: 0;
-  width: clamp(32px, 4vw, 56px);
+  width: clamp(38px, 4vw, 56px);
   height: 224px;
   border: 1px solid rgb(229, 231, 235, 0.3);
   border-radius: 0 0 0.5rem 0.5rem;

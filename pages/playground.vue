@@ -151,7 +151,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="container mx-auto p-6 space-y-6">
+  <div class="container mx-auto p-6">
     <div class="text-center">
       <h1 class="text-3xl font-bold mb-2">
         🎹 Piano Practice
@@ -162,7 +162,7 @@ onMounted(() => {
     </div>
 
     <!-- Piano Component Test -->
-    <div class="card bg-base-100 shadow-xl ">
+    <div class="card bg-base-100 ">
       <div class="card-body">
         <div class="space-y-2">
           <!-- Audio Status Display -->
@@ -328,7 +328,7 @@ onMounted(() => {
           </div>
 
           <!-- Configuration Panel -->
-          <div class="flex justify-end">
+          <div class="flex justify-end max-w-10/12">
             <client-only>
               <div class="form-control">
                 <label class="label cursor-pointer justify-start gap-3 text-base-content p-2">

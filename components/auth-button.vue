@@ -1,4 +1,9 @@
 <script setup lang="ts">
+withDefaults(defineProps<{
+  variant?: "default" | "accent";
+}>(), {
+  variant: "default",
+});
 const authStore = useAuthStore();
 const isOpen = ref(false);
 
@@ -98,9 +103,15 @@ function handleAnonymousSignIn() {
   <button
     v-else
     class="btn"
+    :class="{ 'btn-primary': variant === 'accent' }"
     @click="isOpen = true"
   >
-    Sign in
+    <span v-if="variant === 'accent'">
+      Start Playing Scales Now
+    </span>
+    <span v-else>
+      Sign in
+    </span>
   </button>
 
   <dialog

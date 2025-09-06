@@ -13,10 +13,12 @@ const props = withDefaults(defineProps<{
   selectedMidiInputId: string;
   midiError?: string;
 
+  showBasicOptions?: boolean;
   showAdvancedOptions?: boolean;
   showVolumeAndEffects?: boolean;
   showInstrumentOptions?: boolean;
 }>(), {
+  showBasicOptions: true,
   showAdvancedOptions: true,
   showVolumeAndEffects: true,
   showInstrumentOptions: true,
@@ -92,7 +94,7 @@ function onMidiInputChange(e: Event) {
 
         <div class="space-y-4">
           <!-- Basic Controls -->
-          <div class="space-y-3">
+          <div v-if="showBasicOptions" class="space-y-3">
             <h4 class="text-sm font-medium text-base-content/70 uppercase tracking-wide">
               Basic Controls
             </h4>

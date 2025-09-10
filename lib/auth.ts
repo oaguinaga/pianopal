@@ -7,6 +7,7 @@ import { magicLinkEmailTemplate, sendEmail } from "./email";
 import env from "./env";
 
 export const auth = betterAuth({
+  baseURL: env.BETTER_AUTH_URL,
   database: drizzleAdapter(db, {
     provider: "sqlite",
   }),

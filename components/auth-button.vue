@@ -194,12 +194,6 @@ function handleAnonymousSignIn() {
           Continue as guest
         </button>
       </div>
-
-      <div class="modal-footer">
-        <p class="text-xs mt-4">
-          Please note that if your Github or Discord use a different email address it might not match the one you used to sign up.
-        </p>
-      </div>
     </div>
 
     <form method="dialog" class="modal-backdrop">

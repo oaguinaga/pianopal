@@ -36,7 +36,7 @@ export default defineNuxtConfig({
     dataValue: "theme",
   },
   // Disable SSR for Storybook to prevent manifest issues
-  ssr: !env.STORYBOOK,
+  ssr: env.NODE_ENV === "production" ? true : !env.STORYBOOK,
   // Disable app manifest feature to fix Storybook manifest errors
   experimental: {
     appManifest: !env.STORYBOOK,
